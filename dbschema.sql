@@ -1,8 +1,8 @@
 create table Users(
 NID varchar(10) PRIMARY KEY,
-Name varchar(20),
+UserName varchar(20),
 Account varchar(255),
-Password varchar(255),
+UserPassword varchar(255),
 Dept varchar(20),
 Grade int
 );
@@ -18,7 +18,7 @@ CourseID int PRIMARY KEY,
 CourseName varchar(255),
 Dept varchar(20),
 PeopleLimit int,
-Point int,
+Points int,
 Teacher varchar(20),
 Grade int,
 MustHave BOOLEAN
