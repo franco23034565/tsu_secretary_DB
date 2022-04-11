@@ -26,6 +26,6 @@ MustHave BOOLEAN
 
 create table CourseTime(
 CourseID int,
-Time int,
+TimeID int,
 Classroom varchar(20)
 );
