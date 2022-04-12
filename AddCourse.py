@@ -4,7 +4,8 @@ tf = open("AddCourse.sql", 'w')
 
 
 def insert_AllCourse(infoList):
-    seq_com = f"insert into allcourse values({infoList[0]}, {infoList[1]}, {infoList[2]}, {infoList[3]}, {infoList[4]}, {infoList[5]}, {infoList[6]}, {infoList[7]});\n"
+    seq_com = "insert into AllCourse values\n"
+    seq_com += f"({infoList[0]}, \'{infoList[1]}\', \'{infoList[2]}\', {infoList[3]}, {infoList[4]}, \'{infoList[5]}\', {infoList[6]}, {infoList[7]});\n"
     return seq_com
 
 
@@ -13,10 +14,10 @@ def insert_CourseTime(CourseID, CTList):
     seq_com = ""
     for CT in CTList:
         if i%2 == 0:
-            seq_com += f"insert into coursetime values({CourseID}, {CT}, "
+            seq_com += f"insert into CourseTime values({CourseID}, {CT}, "
             i+=1
         else:
-            seq_com += f"{CT});\n"
+            seq_com += f"\'{CT}\');\n"
             i=0
     return seq_com
 
