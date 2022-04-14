@@ -1,3 +1,5 @@
+# Written By Franco 2022/04/14
+
 f = open("Course.txt", 'r')
 
 tf = open("AddCourse.sql", 'w')
