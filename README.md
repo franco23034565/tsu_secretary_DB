@@ -11,6 +11,8 @@
 格式:
 `courseID courseName Dept MaxPeople Point instructor grade MustHave CourseTime Place CourseTime Place......`
 
+updateDB.py 為 預計可能用到的sql指令
+
 新增用戶
 `addUser(NID, UserName, UserPassword, Dept, Grade)`
 
@@ -22,7 +24,7 @@
 `def timeCollision(NID, CourseID)`
 
 選課（不包含衝堂檢查）
-def chooseCourse(NID, CourseID):
+`chooseCourse(NID, CourseID)`
 
 退選（不包含檢測"CourseID是否在該用戶的chosen中"）
-def deleteCourse(NID, CourseID)
+`deleteCourse(NID, CourseID)`
