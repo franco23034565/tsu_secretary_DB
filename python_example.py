@@ -67,11 +67,11 @@ def printAllCourse():
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
     results += "<tr>"
-    results += "<th>CourseID</th> <th>CourseName</th> <th>Dept</th> <th>HowManyPeople</th> <th>PeopleLimit</th> <th>Points</th> <th>Teacher</th> <th>Grade</th> <th>MustHave</th>"
+    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th>"
     results += "</tr>"
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
         results += "<tr>"
-        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,MustHav)
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,MustHav)
         results += "</tr>"
     results += "</table>"
     return results
