@@ -17,6 +17,7 @@ create table AllCourse(
 CourseID int PRIMARY KEY,
 CourseName varchar(255),
 Dept varchar(20),
+HowManyPeople int,
 PeopleLimit int,
 Points int,
 Teacher varchar(20),
