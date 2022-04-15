@@ -1,5 +1,5 @@
 # Written By Franco 
-import MySQLdb
+#import MySQLdb
 
 f = open("Course.txt", 'r')
 
@@ -24,12 +24,13 @@ def insert_CourseTime(CourseID, CTList):
             i=0
     return seq_com
 
-
+'''
 conn = MySQLdb.connect(host="127.0.0.1",
                            user="hj",
                            passwd="test1234",
                            db="testdb")
-
+'''
+#cursor = conn.cursor()
 #read line and seperate each element
 for line in f.readlines():
     courseInfoList = []
@@ -38,12 +39,12 @@ for line in f.readlines():
 
     courseTime = courseInfoList[9:]
 
-    cursor = conn.cursor()
-    cursor.execute(insert_AllCourse(courseInfoList))
-    cursor.execute(insert_CourseTime(courseInfoList[0], courseTime))
     
-    #tf.write(insert_AllCourse(courseInfoList))
-    #tf.write(insert_CourseTime(courseInfoList[0], courseTime))
+    #cursor.execute(insert_AllCourse(courseInfoList))
+    #cursor.execute(insert_CourseTime(courseInfoList[0], courseTime))
+    
+    tf.write(insert_AllCourse(courseInfoList))
+    tf.write(insert_CourseTime(courseInfoList[0], courseTime))
 
 tf.close()
 f.close()
