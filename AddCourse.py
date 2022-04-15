@@ -31,6 +31,7 @@ conn = MySQLdb.connect(host="127.0.0.1",
                            db="testdb")
 '''
 #cursor = conn.cursor()
+#uery = ""
 #read line and seperate each element
 for line in f.readlines():
     courseInfoList = []
@@ -40,8 +41,13 @@ for line in f.readlines():
     courseTime = courseInfoList[9:]
 
     
-    #cursor.execute(insert_AllCourse(courseInfoList))
-    #cursor.execute(insert_CourseTime(courseInfoList[0], courseTime))
+    #query += insert_AllCourse(courseInfoList)
+    #query += insert_CourseTime(courseInfoList[0], courseTime)
+    #cursor.execute(insertAllCourseString)
+    #conn.commit()
+    #cursor.execute(insertCourseTimeString)
+#cursor.execute(query)
+#conn.commit()
     
     tf.write(insert_AllCourse(courseInfoList))
     tf.write(insert_CourseTime(courseInfoList[0], courseTime))
