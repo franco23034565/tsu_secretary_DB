@@ -51,9 +51,9 @@ def printAllCourse():
     """
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
-
-    for (CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
-        results += "<p>{}, {}, {}, {}, {}, {}, {}, {}</p>".format(CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHav)
+    results += "<p>CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave</p>"
+    for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
+        results += "<p>{}, {}, {}, {}, {}, {}, {}, {}, {}</p>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,MustHav)
     return results
 
 @app.route('/action2', methods=['POST'])
