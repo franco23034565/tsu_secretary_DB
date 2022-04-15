@@ -22,3 +22,5 @@ def chooseCourse(NID, CourseID):
 def deleteCourse(NID, CourseID):
     return f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';"
 
+def currentPoint(NID):
+    return f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from Users where NID = {NID});"
