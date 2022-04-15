@@ -1,5 +1,5 @@
-# Written by Franco 2022/04/14
 
+# Written by Franco 2022/04/14
 
 from unittest import result
 
@@ -76,7 +76,11 @@ def isMustHaveCourse(CourseID):
         return True
     return False
 
+def currentPoint(NID):
+    return f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from Chosen where NID = {NID});"
+
 #Test
 NID = 'D0915679'
 CourseID = 9527
 print(MustHaveList(NID))
+
