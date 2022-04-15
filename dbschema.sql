@@ -1,7 +1,6 @@
 create table Users(
 NID varchar(10) PRIMARY KEY,
 UserName varchar(20),
-Account varchar(255),
 UserPassword varchar(255),
 Dept varchar(20),
 Grade int
