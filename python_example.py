@@ -18,23 +18,6 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     form = """
-    <style>
-        table {
-        font-family: arial, sans-serif;
-        border-collapse: collapse;
-        width: 100%;
-        }
-
-        td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-        }
-
-        tr:nth-child(even) {
-        background-color: #dddddd;
-        }
-    </style>
     <form method="post" action="/printAllCourse" >
         <button type="submit" name="AllCourse" value="*">Click Me</button>
     </form>
@@ -63,6 +46,23 @@ def printAllCourse():
     cursor.execute(query1)
 
     results = """
+    <style>
+        table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }
+
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
     <p><a href="/">Back to Query Interface</a></p>
     """
     results += "<table>"
