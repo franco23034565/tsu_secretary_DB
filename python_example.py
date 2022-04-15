@@ -18,10 +18,26 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     form = """
+    <style>
+        table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }
+
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
     <form method="post" action="/printAllCourse" >
         <button type="submit" name="AllCourse" value="*">Click Me</button>
     </form>
-
     <form method="post" action="/action2">
         <button type="submit" name="AllCourse" value="CourseID, CourseName">Click Me 2</button>
     </form>
@@ -49,11 +65,17 @@ def printAllCourse():
     results = """
     <p><a href="/">Back to Query Interface</a></p>
     """
+    results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
-    results += "<p>CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave</p>"
+    results += "<tr>"
+    results += "<th>CourseID</th> <th>CourseName</th> <th>Dept</th> <th>HowManyPeople</th> <th>PeopleLimit</th> <th>Points</th> <th>Teacher</th> <th>Grade</th> <th>MustHave</th>"
+    results += "</tr>"
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
-        results += "<p>{}, {}, {}, {}, {}, {}, {}, {}, {}</p>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,MustHav)
+        results += "<tr>"
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,MustHav)
+        results += "</tr>"
+    results += "</table>"
     return results
 
 @app.route('/action2', methods=['POST'])
