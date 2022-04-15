@@ -22,7 +22,3 @@ def chooseCourse(NID, CourseID):
 def deleteCourse(NID, CourseID):
     return f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';"
 
-#Test
-NID = 'D0915679'
-CourseID = 9527
-print(MustHaveList(NID))
