@@ -79,6 +79,12 @@ def isMustHaveCourse(CourseID):
 def currentPoint(NID):
     return f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from Chosen where NID = {NID});"
 
+def TimeIDToTime(TimeID):
+    weekRef = ["", "一", "二", "三", "四", "五", "六", "日"]
+    week = (int)(TimeID/100)
+    theClass = TimeID % 100
+    return [weekRef[week], theClass]
+
 #Test
 NID = 'D0915679'
 CourseID = 9527
