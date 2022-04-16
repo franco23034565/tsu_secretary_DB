@@ -28,4 +28,11 @@ create table CourseTime(
 CourseID int,
 TimeID int,
 Classroom varchar(20)
+PRIMARY KEY(NID, TimeID, Classroom)
+);
+
+create table WishList(
+NID varchar(10),
+CourseID int,
+PRIMARY KEY(NID, CourseID)
 );
