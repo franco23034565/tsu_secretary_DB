@@ -1,6 +1,4 @@
 
-# Written by Franco 2022/04/14
-
 from unittest import result
 
 
@@ -8,7 +6,7 @@ def addUser(NID, UserName, UserPassword, Dept, Grade):
     return f"insert into Users values(\'{NID}\', \'{UserName}\', \'{UserPassword}\', \'{Dept}\', {Grade});"
 
 def MustHaveList(NID):
-    return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = {NID});"
+    return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
 
 #if theres thing in this table, then theres time collision
 def timeCollision(NID, CourseID):
@@ -25,15 +23,20 @@ def chooseCourse(NID, CourseID):
     result = f"IF (NOT EXISTS(SELECT TimeID FROM {currentTimeOfCourse} INNER JOIN {timeTable} ON {currentTimeOfCourse}.TimeID = {timeTable}.TimeID))"
     if 
     '''
-    return f"insert into Chosen values(\'{NID}\', {CourseID});"
+    results = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
+    results += f"insert into Chosen values(\'{NID}\', {CourseID});"
+    return results
 
 #not include "detect if the course is in NID's Chosen list"
 def deleteCourse(NID, CourseID):
     return f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';"
 
-#null table donotes that don't exist same CourseName
-def isSameNameCourse(CourseName):
-    return f"SELECT CourseName FROM AllCourse WHERE CourseName = {CourseName};"
+def SameNameCourseCount(NID, CourseID):
+    results  = f"select count(*) as CourseCount from AllCourse"
+    results += f"where CourseName in (select CourseName from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\'))" #在已選課表中的所有課名
+    results += f" and "
+    results += f"CourseID <> {CourseID};"
+    return results
 
 #null table donotes that don't exceed limit of student
 def isExceedLimitOfStudent(CourseID):
@@ -42,7 +45,7 @@ def isExceedLimitOfStudent(CourseID):
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 def ListChosenCourse(NID):
     #source: python_example.py
-    cursor.execute(f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT COURSEID FROM Chosen WHERE NID = {NID});")
+    cursor.execute(f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT COURSEID FROM Chosen WHERE NID = \'{NID}\');")
     currentToatalPointsOfStudent = cursor.fetchall()
     cursor.execute(f"SELECT CourseName, CourseID, Point FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen);")
     notChosenList = cursor.fetchall()
@@ -53,7 +56,7 @@ def ListChosenCourse(NID):
     return results
 
 def isHigherPointLimit(NID):
-    results = f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT COURSEID FROM Chosen WHERE NID = {NID});"
+    results = f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
     cursor.execute(results)
     if 30 < cursor.fetchall():
@@ -61,7 +64,7 @@ def isHigherPointLimit(NID):
     return False
 
 def isLowerPointLimit(NID):
-    results = f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT COURSEID FROM Chosen WHERE NID = {NID});"
+    results = f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
         cursor.execute(results)
         if cursor.fetchall() < 30:
@@ -77,7 +80,7 @@ def isMustHaveCourse(CourseID):
     return False
 
 def currentPoint(NID):
-    return f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from Chosen where NID = {NID});"
+    return f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
 
 
 #return [星期幾(string), 第幾節課(int)]
@@ -89,8 +92,9 @@ def TimeIDToTime(TimeID):
     theClass = TimeID % 100
     return [weekRef[week], theClass]
 
+
 #Test
 NID = 'D0915679'
 CourseID = 9527
-print(MustHaveList(NID))
+print(SameNameCourseCount(NID, 9527))
 
