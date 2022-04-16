@@ -32,15 +32,14 @@ def index():
 def printAllCourse():
     # 取得輸入的文字
     my_head = request.form.get("AllCourse")
-    #your_head = request.form.get("CourseName")
     # 建立資料庫連線
     conn = MySQLdb.connect(host="127.0.0.1",
                            user="hj",
                            passwd="test1234",
                            db="testdb")
     # 欲查詢的 query 指令
+    #query1 = "SELECT * FROM AllCourse;"
     query1 = "SELECT {} FROM AllCourse;".format(my_head)
-    #query2 = "SELECT {} FROM AllCourse;".format(your_head)
     # 執行查詢
     cursor = conn.cursor()
     cursor.execute(query1)
