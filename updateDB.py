@@ -8,6 +8,16 @@ def addUser(NID, UserName, UserPassword, Dept, Grade):
 def MustHaveList(NID):
     return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
 
+def isMustHaveCourse(Dept,CourseID):
+    results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID}"
+    cursor.execute(results)
+    tempA = cursor.fetchall() 
+    
+    #source: python_example.py
+    if (tempA[0] == True) and (tempA[1] == Dept) :
+        return True
+    return False
+
 #if theres thing in this table, then theres time collision
 def timeCollision(NID, CourseID):
     result =  f"SELECT TimeID from CourseTime WHERE CourseID IN (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\')"
@@ -38,9 +48,11 @@ def SameNameCourseCount(NID, CourseID):
     results += f"CourseID <> {CourseID};"
     return results
 
-#null table donotes that don't exceed limit of student
 def isExceedLimitOfStudent(CourseID):
-    return f"SELECT HowManyPeople FROM AllCourse WHERE CourseID = {CourseID} and HowManyPeople >= PeopleLimit;"
+    results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"
+    cursor.execute(results)
+    tempA = cursor.fetchall() 
+    return tempA[0]>tempA[1]#true or false
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 def ListChosenCourse(NID):
@@ -55,21 +67,21 @@ def ListChosenCourse(NID):
             results = (CourseName, CourseID, Point)
     return results
 
-def isHigherPointLimit(NID):
-    results = f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
+def isLessThanPointUpperLimit(NID):
+    results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
     cursor.execute(results)
-    if 30 < cursor.fetchall():
+    if cursor.fetchall() <= 30:
         return True
     return False
 
-def isLowerPointLimit(NID):
-    results = f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
+def isGreaterThanPointLowerLimit(NID):
+    results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
-        cursor.execute(results)
-        if cursor.fetchall() < 30:
-            return True
-        return False
+    cursor.execute(results)
+    if cursor.fetchall() >= 9:
+        return True
+    return False
 
 def isMustHaveCourse(CourseID):
     results =  f"SELECT MustHave FROM AllCourse WHERE CourseID = {CourseID}"
