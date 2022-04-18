@@ -13,7 +13,9 @@ def addUser(NID, UserName, UserPassword, Dept, Grade):
 def MustHaveList(NID):
     return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
 
+  
 def isMustHaveCourse(Dept,CourseID, cursor):
+
     results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID}"
     cursor.execute(results)
     tempA = cursor.fetchall() 
@@ -22,6 +24,7 @@ def isMustHaveCourse(Dept,CourseID, cursor):
     if (tempA[0] == True) and (tempA[1] == Dept) :
         return True
     return False
+
 
 #if results' not 0, then theres time collision
 #列出(在已選課表內)且(時間跟欲查課程的時間一樣)的TimeID數量
@@ -57,6 +60,7 @@ def SameNameCourseCount(NID, CourseID):
     results += f"CourseID <> {CourseID};"
     return results
 
+
 def isExceedLimitOfStudent(CourseID, cursor):
     results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
@@ -78,6 +82,7 @@ def ListChosenCourse(NID, cursor):
             results.append((CourseName, CourseID, Point)) 
     return results
 
+
 def isLessThanPointUpperLimit(NID, cursor):
     results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
@@ -85,6 +90,7 @@ def isLessThanPointUpperLimit(NID, cursor):
     if cursor.fetchall() <= 30:
         return True
     return False
+
 
 def isGreaterThanPointLowerLimit(NID, cursor):
     results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
