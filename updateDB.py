@@ -1,9 +1,14 @@
 
 from unittest import result
+from hashlib import sha256
+import MySQLdb
 
+def tsuSHA256(aString):
+    return str(sha256(aString.encode("utf-8")).hexdigest())
 
 def addUser(NID, UserName, UserPassword, Dept, Grade):
-    return f"insert into Users values(\'{NID}\', \'{UserName}\', \'{UserPassword}\', \'{Dept}\', {Grade});"
+    passwd = tsuSHA256(UserPassword)
+    return f"insert into Users values(\'{NID}\', \'{UserName}\', \'{passwd}\', \'{Dept}\', {Grade});"
 
 def MustHaveList(NID):
     return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
@@ -107,6 +112,9 @@ def TimeIDToTime(TimeID):
 
 #Test
 NID = 'D0915679'
-CourseID = 9527
-print(SameNameCourseCount(NID, 9527))
+passwd = str(input('Input Password: '))
+UserName = "紀彥廷"
+Dept = "資工"
+Grade = 2
+print(addUser(NID, UserName, passwd, Dept, Grade))
 
