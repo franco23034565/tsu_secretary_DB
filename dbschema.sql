@@ -27,8 +27,8 @@ MustHave BOOLEAN
 create table CourseTime(
 CourseID int,
 TimeID int,
-Classroom varchar(20)
-PRIMARY KEY(NID, TimeID, Classroom)
+Classroom varchar(20),
+PRIMARY KEY(CourseID, TimeID, Classroom)
 );
 
 create table WishList(
