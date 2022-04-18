@@ -1,19 +1,21 @@
-
-from unittest import result
 from hashlib import sha256
 import MySQLdb
 
 def tsuSHA256(aString):
     return str(sha256(aString.encode("utf-8")).hexdigest())
 
+#add user with password using SHA256 hash function
 def addUser(NID, UserName, UserPassword, Dept, Grade):
     passwd = tsuSHA256(UserPassword)
     return f"insert into Users values(\'{NID}\', \'{UserName}\', \'{passwd}\', \'{Dept}\', {Grade});"
 
+#list all Courses that a user must have
 def MustHaveList(NID):
     return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
 
-def isMustHaveCourse(Dept,CourseID):
+  
+def isMustHaveCourse(Dept,CourseID, cursor):
+
     results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID}"
     cursor.execute(results)
     tempA = cursor.fetchall() 
@@ -23,12 +25,15 @@ def isMustHaveCourse(Dept,CourseID):
         return True
     return False
 
-#if theres thing in this table, then theres time collision
+
+#if results' not 0, then theres time collision
+#列出(在已選課表內)且(時間跟欲查課程的時間一樣)的TimeID數量
 def timeCollision(NID, CourseID):
-    result =  f"SELECT TimeID from CourseTime WHERE CourseID IN (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\')"
-    result += f" and "
-    result += f"TimeID IN (SELECT TimeID FROM CourseTime WHERE CourseID = {CourseID});"
-    return result
+    results = "SELECT count(TimeID) as colCount from CourseTime"
+    results += f"WHERE CourseID IN (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\')"
+    results += f" and "
+    results += f"TimeID IN (SELECT TimeID FROM CourseTime WHERE CourseID = {CourseID});"
+    return results
 
 #not include time collision 未完成
 def chooseCourse(NID, CourseID):
@@ -44,7 +49,9 @@ def chooseCourse(NID, CourseID):
 
 #not include "detect if the course is in NID's Chosen list"
 def deleteCourse(NID, CourseID):
-    return f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';"
+    results =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
+    results += f"update AllCourse set HowManyPeople = HowManyPeople - 1 where CourseID = {CourseID};"
+    return results
 
 def SameNameCourseCount(NID, CourseID):
     results  = f"select count(*) as CourseCount from AllCourse"
@@ -53,26 +60,30 @@ def SameNameCourseCount(NID, CourseID):
     results += f"CourseID <> {CourseID};"
     return results
 
-def isExceedLimitOfStudent(CourseID):
+
+def isExceedLimitOfStudent(CourseID, cursor):
     results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
     tempA = cursor.fetchall()
     return tempA[0]>tempA[1]#true or false
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
-def ListChosenCourse(NID):
+#results is tuple list
+def ListChosenCourse(NID, cursor):
     #source: python_example.py
-    cursor.execute(f"SELECT sum(Point) FROM AllCourse WHERE CourseID in (SELECT COURSEID FROM Chosen WHERE NID = \'{NID}\');")
-    currentToatalPointsOfStudent = cursor.fetchall()
-    cursor.execute(f"SELECT CourseName, CourseID, Point FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen);")
+    cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
+    currentTotalPointsOfStudent = cursor.fetchall()
+    cursor.execute(f"SELECT CourseName, CourseID, Point FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen where NID = \'{NID}\');")
     notChosenList = cursor.fetchall()
+    results = []
     for (CourseName, CourseID, Point) in notChosenList:
-        sum = currentToatalPointsOfStudent + Point
+        sum = currentTotalPointsOfStudent + Point
         if 9 <= sum and sum <= 30:
-            results = (CourseName, CourseID, Point)
+            results.append((CourseName, CourseID, Point)) 
     return results
 
-def isLessThanPointUpperLimit(NID):
+
+def isLessThanPointUpperLimit(NID, cursor):
     results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
     cursor.execute(results)
@@ -80,7 +91,8 @@ def isLessThanPointUpperLimit(NID):
         return True
     return False
 
-def isGreaterThanPointLowerLimit(NID):
+
+def isGreaterThanPointLowerLimit(NID, cursor):
     results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
     cursor.execute(results)
@@ -88,7 +100,7 @@ def isGreaterThanPointLowerLimit(NID):
         return True
     return False
 
-def isMustHaveCourse(CourseID):
+def isMustHaveCourse(CourseID, cursor):
     results =  f"SELECT MustHave FROM AllCourse WHERE CourseID = {CourseID}"
     #source: python_example.py
     cursor.execute(results)
