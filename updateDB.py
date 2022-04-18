@@ -56,7 +56,7 @@ def SameNameCourseCount(NID, CourseID):
 def isExceedLimitOfStudent(CourseID):
     results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
-    tempA = cursor.fetchall() 
+    tempA = cursor.fetchall()
     return tempA[0]>tempA[1]#true or false
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
