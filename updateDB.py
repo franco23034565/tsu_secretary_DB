@@ -4,10 +4,14 @@ import MySQLdb
 def tsuSHA256(aString):
     return str(sha256(aString.encode("utf-8")).hexdigest())
 
+#tested no error
 #add user with password using SHA256 hash function
-def addUser(NID, UserName, UserPassword, Dept, Grade):
+def addUser(NID, UserName, UserPassword, Dept, Grade, conn):
+    cursor = conn.cursor()
     passwd = tsuSHA256(UserPassword)
-    return f"insert into Users values(\'{NID}\', \'{UserName}\', \'{passwd}\', \'{Dept}\', {Grade});"
+    results = f"insert into Users values(\'{NID}\', \'{UserName}\', \'{passwd}\', \'{Dept}\', {Grade});"
+    cursor.execute(results)
+    conn.commit()
 
 #list all Courses that a user must have
 def MustHaveList(NID):
@@ -120,13 +124,3 @@ def TimeIDToTime(TimeID):
     #print(week)
     theClass = TimeID % 100
     return [weekRef[week], theClass]
-
-
-#Test
-NID = 'D0915679'
-passwd = str(input('Input Password: '))
-UserName = "紀彥廷"
-Dept = "資工"
-Grade = 2
-print(addUser(NID, UserName, passwd, Dept, Grade))
-
