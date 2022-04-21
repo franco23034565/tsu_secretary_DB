@@ -4,7 +4,7 @@ import MySQLdb
 def tsuSHA256(aString):
     return str(sha256(aString.encode("utf-8")).hexdigest())
 
-#tested no error
+# tested: ABLE TO USE
 #add user with password using SHA256 hash function
 def addUser(NID, UserName, UserPassword, Dept, Grade, conn):
     cursor = conn.cursor()
@@ -13,10 +13,25 @@ def addUser(NID, UserName, UserPassword, Dept, Grade, conn):
     cursor.execute(results)
     conn.commit()
 
+# tested: ABLE TO USE
 #list all Courses that a user must have
-def MustHaveList(NID):
+def mustHaveList(NID):
     return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
 
+# tested: ABLE TO USE
+#automate the "choose MustHave" process
+def autoChooseMustHaveList(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(mustHaveList(NID))
+    for (CourseID,) in cursor.fetchall():
+        addAllCoursePeople = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
+        addChosen = f"insert into Chosen values(\'{NID}\', {CourseID});"
+        #print(addAllCoursePeople)
+        #print(addChosen)
+        cursor.execute(addAllCoursePeople)
+        conn.commit()
+        cursor.execute(addChosen)
+        conn.commit()
   
 def isMustHaveCourse(Dept,CourseID, cursor):
 
