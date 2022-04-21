@@ -45,6 +45,7 @@ def isMustHaveCourse(Dept,CourseID, cursor):
     return False
 
 
+#tested: NOT ABLE TO USE (idk why)
 #if results' not 0, then theres time collision
 #列出(在已選課表內)且(時間跟欲查課程的時間一樣)的TimeID數量
 def timeCollision(NID, CourseID):
@@ -66,11 +67,16 @@ def chooseCourse(NID, CourseID):
     results += f"insert into Chosen values(\'{NID}\', {CourseID});"
     return results
 
+# tested: ABLE TO USE
 #not include "detect if the course is in NID's Chosen list"
-def deleteCourse(NID, CourseID):
-    results =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
-    results += f"update AllCourse set HowManyPeople = HowManyPeople - 1 where CourseID = {CourseID};"
-    return results
+def deleteCourse(NID, CourseID, conn):
+    cursor = conn.cursor()
+    results1 =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
+    cursor.execute(results1)
+    conn.commit()
+    results2 = f"update AllCourse set HowManyPeople = HowManyPeople - 1 where CourseID = {CourseID};"
+    cursor.execute(results2)
+    conn.commit()
 
 def SameNameCourseCount(NID, CourseID):
     results  = f"select count(*) as CourseCount from AllCourse"
