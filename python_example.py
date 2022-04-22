@@ -12,6 +12,10 @@ app = Flask(__name__)
         <input type="submit" value="送出">
     </form>
     <button >
+    
+    <form method="post" action="/action2">
+        <button type="submit" name="AllCourse" value="CourseID, CourseName">Click Me 2</button>
+    </form>
     """
 '''
 
@@ -20,9 +24,6 @@ def index():
     form = """
     <form method="post" action="/printAllCourse" >
         <button type="submit" name="AllCourse" value="*">顯示所有課程</button>
-    </form>
-    <form method="post" action="/action2">
-        <button type="submit" name="AllCourse" value="CourseID, CourseName">Click Me 2</button>
     </form>
     """
     return form
@@ -74,31 +75,4 @@ def printAllCourse():
         results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
         results += "</tr>"
     results += "</table>"
-    return results
-
-@app.route('/action2', methods=['POST'])
-def action2():
-    # 取得輸入的文字
-    my_head = request.form.get("AllCourse")
-    #your_head = request.form.get("CourseName")
-    # 建立資料庫連線
-    conn = MySQLdb.connect(host="127.0.0.1",
-                           user="hj",
-                           passwd="test1234",
-                           db="testdb")
-    # 欲查詢的 query 指令
-    query1 = "SELECT {} FROM AllCourse;".format(my_head)
-    #query2 = "SELECT {} FROM AllCourse;".format(your_head)
-    # 執行查詢
-    cursor = conn.cursor()
-    cursor.execute(query1)
-
-    results = """
-    <p><a href="/">Back to Query Interface</a></p>
-    """
-    # 取得並列出所有查詢結果
-    #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
-
-    for (CourseID,CourseName) in cursor.fetchall():
-        results += "<p>{}, {}</p>".format(CourseID,CourseName)
     return results
