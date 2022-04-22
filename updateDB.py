@@ -154,3 +154,15 @@ def TimeIDToTime(TimeID):
     theClass = TimeID % 100
     return [weekRef[week], theClass]
 
+#tested: ABLE TO USE
+def isUser(NID, passwd, conn):
+    cursor = conn.cursor()
+    userPassWd = tsuSHA256(passwd)
+    searchsql = f"select count(*) from Users where NID = \'{NID}\' and UserPassword = \'{userPassWd}\';"
+    cursor.execute(searchsql)
+    results = 0
+    for (amount,) in cursor.fetchall():
+        results += amount
+    if results == 1:
+        return True
+    return False

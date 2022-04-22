@@ -19,7 +19,7 @@ app = Flask(__name__)
 def index():
     form = """
     <form method="post" action="/printAllCourse" >
-        <button type="submit" name="AllCourse" value="*">Click Me</button>
+        <button type="submit" name="AllCourse" value="*">顯示所有課程</button>
     </form>
     <form method="post" action="/action2">
         <button type="submit" name="AllCourse" value="CourseID, CourseName">Click Me 2</button>
@@ -30,6 +30,7 @@ def index():
 
 @app.route('/printAllCourse', methods=['POST'])
 def printAllCourse():
+    truth = {0:"否", 1:"是"}
     # 取得輸入的文字
     my_head = request.form.get("AllCourse")
     # 建立資料庫連線
@@ -70,7 +71,7 @@ def printAllCourse():
     results += "</tr>"
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
         results += "<tr>"
-        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,MustHav)
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
         results += "</tr>"
     results += "</table>"
     return results
