@@ -18,10 +18,5 @@ userGrade = 2
 #udb.autoChooseMustHaveList(NID, conn)
 #udb.deleteCourse(NID, 9487, conn)
 
-results = udb.currentPoint(NID, conn)
-
-if results == None:
-    print("No")
-else:
-    print(results)
+print(udb.isUser(NID, "IWasTestins", conn))
     
