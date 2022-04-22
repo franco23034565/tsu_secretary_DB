@@ -133,8 +133,16 @@ def isMustHaveCourse(CourseID, cursor):
         return True
     return False
 
-def currentPoint(NID):
-    return f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+# tested: ABLE TO USE
+# if current point = 0, then return None
+def currentPoint(NID, conn):
+    cursor = conn.cursor()
+    results = f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    cursor.execute(results)
+    points = 0
+    for (a,) in cursor.fetchall():
+        points = a
+    return points
 
 
 #return [星期幾(string), 第幾節課(int)]
