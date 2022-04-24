@@ -1,7 +1,7 @@
 # Written By Franco 
 import MySQLdb
 
-f = open("Course.txt", 'r')
+f = open("Course.txt", 'r', encoding="utf-8")
 
 conn = MySQLdb.connect(host="127.0.0.1",
                            user="hj",
