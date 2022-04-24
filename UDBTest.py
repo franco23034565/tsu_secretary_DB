@@ -11,12 +11,14 @@ cursor = conn.cursor()
 
 NID = "D0915679"
 userName = "紀彥廷"
-userDept = "資訊工程學系"
+userDept = "資訊系"
 userPasswd = "IWasTesting"
 userGrade = 2
 #udb.addUser(NID, userName, userPasswd, userDept, userGrade, conn)
 #udb.autoChooseMustHaveList(NID, conn)
 #udb.deleteCourse(NID, 9487, conn)
+udb.addInWishList(NID, 7495, conn)
 
-print(udb.isUser(NID, "IWasTestins", conn))
-    
+#print(udb.isUser(NID, "IWasTestins", conn))
+#cursor.execute(udb.timeCollision(NID, conn))
+print(udb.timeCollision(NID, conn))

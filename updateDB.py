@@ -37,7 +37,7 @@ def isMustHaveCourse(Dept,CourseID, cursor):
 
     results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID}"
     cursor.execute(results)
-    tempA = cursor.fetchall() 
+    tempA = cursor.fetchall()
     
     #source: python_example.py
     if (tempA[0] == True) and (tempA[1] == Dept) :
@@ -45,16 +45,20 @@ def isMustHaveCourse(Dept,CourseID, cursor):
     return False
 
 
-#tested: NOT ABLE TO USE (idk why)
-#if results' not 0, then theres time collision
-#列出(在已選課表內)且(時間跟欲查課程的時間一樣)的TimeID數量
-def timeCollision(NID, CourseID):
-    results = "SELECT count(TimeID) as colCount from CourseTime"
-    results += f"WHERE CourseID IN (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\')"
-    results += f" and "
-    results += f"TimeID IN (SELECT TimeID FROM CourseTime WHERE CourseID = {CourseID});"
-    return results
-
+#tested: ABLE TO USE
+def timeCollision(NID,conn):
+    cursor = conn.cursor()
+    exxe = f"""select count(*) from CourseTime where TimeID in (select TimeID from CourseTime where CourseID in (select CourseID from Chosen where NID = '{NID}')) and
+TimeID in (select TimeID from CourseTime where CourseID in (SELECT CourseID FROM WishList WHERE NID = '{NID}'));"""
+    cursor.execute(exxe)
+    results = 0
+    for (a,) in cursor.fetchall():
+        results = a
+    if (results == 0):
+        return False
+    return True
+    
+ 
 #not include time collision 未完成
 def chooseCourse(NID, CourseID):
     '''
@@ -86,6 +90,12 @@ def SameNameCourseCount(NID, CourseID):
     return results
 
 
+def addInWishList(NID, CourseID, conn):
+    cursor = conn.cursor()
+    results = f"insert into WishList values(\'{NID}\', {CourseID});"
+    cursor.execute(results)
+    conn.commit()
+
 def isExceedLimitOfStudent(CourseID, cursor):
     results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
@@ -94,7 +104,7 @@ def isExceedLimitOfStudent(CourseID, cursor):
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 #results is tuple list
-def ListChosenCourse(NID, cursor):
+def ListChoosableCourse(NID, cursor):
     #source: python_example.py
     cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
     currentTotalPointsOfStudent = cursor.fetchall()
@@ -144,7 +154,6 @@ def currentPoint(NID, conn):
         CurrentPoints = a
     return CurrentPoints
 
-
 #return [星期幾(string), 第幾節課(int)]
 def TimeIDToTime(TimeID):
     weekRef = {1 :"一", 2: "二", 3: "三", 4: "四",
@@ -154,7 +163,7 @@ def TimeIDToTime(TimeID):
     theClass = TimeID % 100
     return [weekRef[week], theClass]
 
-#tested: ABLE TO USE
+# tested: ABLE TO USE
 def isUser(NID, passwd, conn):
     cursor = conn.cursor()
     userPassWd = tsuSHA256(passwd)
@@ -166,3 +175,8 @@ def isUser(NID, passwd, conn):
     if results == 1:
         return True
     return False
+
+# tested: ABLE TO USE
+def listChosenList(NID):
+    results = f"select * from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    return results
