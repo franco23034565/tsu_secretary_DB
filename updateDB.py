@@ -37,7 +37,7 @@ def isMustHaveCourse(Dept,CourseID, cursor):
 
     results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID}"
     cursor.execute(results)
-    tempA = cursor.fetchall() 
+    tempA = cursor.fetchall()
     
     #source: python_example.py
     if (tempA[0] == True) and (tempA[1] == Dept) :
@@ -45,28 +45,32 @@ def isMustHaveCourse(Dept,CourseID, cursor):
     return False
 
 
-#tested: NOT ABLE TO USE (idk why)
-#if results' not 0, then theres time collision
-#列出(在已選課表內)且(時間跟欲查課程的時間一樣)的TimeID數量
-def timeCollision(NID, CourseID):
-    results = "SELECT count(TimeID) as colCount from CourseTime"
-    results += f"WHERE CourseID IN (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\')"
-    results += f" and "
-    results += f"TimeID IN (SELECT TimeID FROM CourseTime WHERE CourseID = {CourseID});"
-    return results
-
+#tested: ABLE TO USE
+def timeCollision(NID,conn):
+    cursor = conn.cursor()
+    exxe = f"""select count(*) from CourseTime where TimeID in (select TimeID from CourseTime where CourseID in (select CourseID from Chosen where NID = '{NID}')) and
+TimeID in (select TimeID from CourseTime where CourseID in (SELECT CourseID FROM WishList WHERE NID = '{NID}'));"""
+    cursor.execute(exxe)
+    results = 0
+    for (a,) in cursor.fetchall():
+        results = a
+    if (results == 0):
+        return False
+    return True
+    
+'''
 #not include time collision 未完成
 def chooseCourse(NID, CourseID):
-    '''
+    
     timeTable = timeCollision(NID, CourseID)
     currentTimeOfCourse = f"SELECT TimeID FROM CourseTime WHERE CourseID = {CourseID}"
     result = f"IF (NOT EXISTS(SELECT TimeID FROM {currentTimeOfCourse} INNER JOIN {timeTable} ON {currentTimeOfCourse}.TimeID = {timeTable}.TimeID))"
     if 
-    '''
+    
     results = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
     results += f"insert into Chosen values(\'{NID}\', {CourseID});"
     return results
-
+'''
 # tested: ABLE TO USE
 #not include "detect if the course is in NID's Chosen list"
 def deleteCourse(NID, CourseID, conn):
@@ -86,11 +90,18 @@ def SameNameCourseCount(NID, CourseID):
     return results
 
 
+def addInWishList(NID, CourseID, conn):
+    cursor = conn.cursor()
+    results = f"insert into WishList values(\'{NID}\', {CourseID});"
+    cursor.execute(results)
+    conn.commit()
+
 def isExceedLimitOfStudent(CourseID, cursor):
     results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
     tempA = cursor.fetchall()
-    return tempA[0]>tempA[1]#true or false
+    #return tempA
+    return tempA[0][0]>=tempA[0][1]#true or false
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 #results is tuple list
@@ -144,7 +155,6 @@ def currentPoint(NID, conn):
         CurrentPoints = a
     return CurrentPoints
 
-
 #return [星期幾(string), 第幾節課(int)]
 def TimeIDToTime(TimeID):
     weekRef = {1 :"一", 2: "二", 3: "三", 4: "四",
@@ -154,7 +164,7 @@ def TimeIDToTime(TimeID):
     theClass = TimeID % 100
     return [weekRef[week], theClass]
 
-#tested: ABLE TO USE
+# tested: ABLE TO USE
 def isUser(NID, passwd, conn):
     cursor = conn.cursor()
     userPassWd = tsuSHA256(passwd)
@@ -171,3 +181,56 @@ def isUser(NID, passwd, conn):
 def listChosenList(NID):
     results = f"select * from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
     return results
+
+# tested: ABLE TO USE
+def wishListPoint(NID, conn):
+    cursor = conn.cursor()   
+    results = f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
+    cursor.execute(results)
+    CurrentPoints = 0
+    for (a,) in cursor.fetchall():
+        CurrentPoints = a
+    return CurrentPoints
+
+# tested: ABLE TO USE
+def wishListPointAddChosenPoint(NID, conn):
+    return currentPoint(NID, conn) + wishListPoint(NID, conn)
+
+# tested: ABLE TO USE
+def showWishList(NID):
+    return f"select * from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
+
+def chooseCourse(NID,conn):
+    if (timeCollision(NID, conn) == True):
+        return "衝堂"     #衝堂
+    
+    if (wishListPointAddChosenPoint(NID, conn) > 30):
+        return "超出學分上限"     #超出上限
+    
+    wishList = f"select CourseID from WishList where NID = \'{NID}\';"
+    cursor = conn.cursor()
+    cursor.execute(wishList)
+    results = "成功!"
+    for (CourseID,) in cursor.fetchall():
+        if (isExceedLimitOfStudent(CourseID, cursor) == True):
+            #print(f"{CourseID} Exceed People Limit\n")
+            results += f", 超出人數上限：{CourseID}"
+            continue
+        cursor.execute(f"insert into Chosen values(\'{NID}\', {CourseID});")
+        conn.commit()
+        cursor.execute(f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};")
+        conn.commit()
+        cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
+        conn.commit()
+    return results
+
+def removeFromWishList(NID, CourseID, conn):
+    inWishList = f"select count(*) from WishList where CourseID = {CourseID} and NID = \'{NID}\';"
+    cursor = conn.cursor()
+    cursor.execute(inWishList)
+    wishCount = 0
+    for (a,) in cursor.fetchall():
+        wishCount = a
+    if (wishCount != 1):
+        return False
+    cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
