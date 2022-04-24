@@ -122,7 +122,8 @@ def isLessThanPointUpperLimit(NID, cursor):
     results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
     cursor.execute(results)
-    if cursor.fetchall() <= 30:
+    temp = cursor.fetall()
+    if temp[0] <= 30:
         return True
     return False
 
@@ -131,7 +132,8 @@ def isGreaterThanPointLowerLimit(NID, cursor):
     results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
     cursor.execute(results)
-    if cursor.fetchall() >= 9:
+    temp = cursor.fetchall()
+    if temp[0] >= 9:
         return True
     return False
 
@@ -139,7 +141,8 @@ def isMustHaveCourse(CourseID, cursor):
     results =  f"SELECT MustHave FROM AllCourse WHERE CourseID = {CourseID}"
     #source: python_example.py
     cursor.execute(results)
-    if cursor.fetchall() == True:
+    temp = cursor.fetchall()
+    if temp[0] == True:
         return True
     return False
 
