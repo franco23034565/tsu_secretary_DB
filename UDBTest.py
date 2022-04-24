@@ -17,10 +17,8 @@ userGrade = 2
 #udb.addUser(NID, userName, userPasswd, userDept, userGrade, conn)
 #udb.autoChooseMustHaveList(NID, conn)
 #udb.deleteCourse(NID, 9487, conn)
+udb.addInWishList(NID, 7495, conn)
 
 #print(udb.isUser(NID, "IWasTestins", conn))
-cursor.execute(udb.listChosenList(NID))
-for a in cursor.fetchall():
-#for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
-    print (a)
-    
+#cursor.execute(udb.timeCollision(NID, conn))
+print(udb.timeCollision(NID, conn))
