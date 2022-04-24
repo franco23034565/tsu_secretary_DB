@@ -9,6 +9,7 @@ conn = MySQLdb.connect(host="127.0.0.1",
                            user="hj",
                            passwd="test1234",
                            db="testdb")
+cursor = conn.cursor()
 
 app = Flask(__name__)
 '''
@@ -46,14 +47,12 @@ def index():
     <form method="post" action="/printAllCourse" >
         <button type="submit" name="AllCourse" value="*">顯示所有課程</button>
     </form>
-
     <form method="post" action="/printOwnCourse">
-        <p>登入帳號：<p><input type="text" name="user">
-        <p>密碼：<p><input type="password" name="passwd">
+        <p>登入帳號：</p><input type="text" name="user">
+        <p>密碼：</p><input type="password" name="passwd">
         <p><button type="submit" value="*">送出</button>
     </from>
-
-    <form method="post" action="/index2" >
+    <form method="post" action="/index2">
         <button type="submit" value="*">新增使用者</button>
     </form>
     """
@@ -62,13 +61,14 @@ def index():
 
 @app.route('/printOwnCourse', methods=['POST'])
 def printOwnCourse():
+    truth = {0:"否", 1:"是"}
     username = request.form.get("user")
     passwd = request.form.get("passwd")
     if username == "" or passwd == "":
         results = "<h1>帳號密碼不能為空</h1>"
         results += """<p><a href="/">Back to Query Interface</a></p>"""
         return results
-    if (DB.isUser(username, passwd, conn)== False):
+    elif (DB.isUser(username, passwd, conn)== False):
         results = "<h1>帳號或密碼錯誤</h1>"
         results += """<p><a href="/">Back to Query Interface</a></p>"""
         results += """ <form method="post" action="/index2" >
@@ -76,19 +76,9 @@ def printOwnCourse():
                         </form>
                     """
         return results
-
-    truth = {0:"否", 1:"是"}
-    # 取得輸入的文字
-    my_head = request.form.get("AllCourse")
-    # 建立資料庫連線
-    # 欲查詢的 query 指令
-    #query1 = "SELECT * FROM AllCourse;"
-    query1 = "SELECT {} FROM AllCourse;".format(my_head)
-    # 執行查詢
-    cursor = conn.cursor()
-    cursor.execute(query1)
-
-    results = """
+    else:
+        cursor.execute(DB.listChosenList(username))
+        results = """
     <style>
         table {
         font-family: arial, sans-serif;
@@ -106,6 +96,12 @@ def printOwnCourse():
     </style>
     <p><a href="/">Back to Query Interface</a></p>
     """
+    results +=  f"<h1>Welcome, {username} </h1>"
+    results +=  f"""<form method="post" action="/AddCourse" >
+                        <button type="submit" name={username} value="*">去選課!</button>
+                    </form>"""
+                
+    results += f"<h2>已選課表</h2>"
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
@@ -117,8 +113,6 @@ def printOwnCourse():
         results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
         results += "</tr>"
     results += "</table>"
-    results += f"<p>{username}</p>"
-    results += f"<p>{passwd}</p>"
     return results
 
 
@@ -193,7 +187,17 @@ def AddUsers():
     Dept = request.form.get("dept")
     Grade = request.form.get("grade")
     DB.addUser(NID, UserName, UserPassword, Dept, Grade, conn)
-    results = "<h1>新增成功</h1>"
+    DB.autoChooseMustHaveList(NID,conn)
+    results = "<h1>新增成功，已將必選課程列入課表</h1>"
+    results += """<p><a href="/">Back to Query Interface</a></p>"""
+    return results
+@app.route('/AddCourse', methods=['POST'])
+def AddCourse():
+    results =   f"""<form method="post" action="/printAllCourse" >
+                        課程ID:<p><input type="text" name="courseID">
+                        <button type="submit" name="AllCourse" value="*">選課</button>
+                    </form>
+                """
     results += """<p><a href="/">Back to Query Interface</a></p>"""
     return results
 
