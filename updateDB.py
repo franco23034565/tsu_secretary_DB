@@ -180,3 +180,17 @@ def isUser(NID, passwd, conn):
 def listChosenList(NID):
     results = f"select * from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
     return results
+
+# tested: ABLE TO USE
+def wishListPoint(NID, conn):
+    cursor = conn.cursor()   
+    results = f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
+    cursor.execute(results)
+    CurrentPoints = 0
+    for (a,) in cursor.fetchall():
+        CurrentPoints = a
+    return CurrentPoints
+
+# tested: ABLE TO USE
+def wishListPointAddChosenPoint(NID, conn):
+    return currentPoint(NID, conn) + wishListPoint(NID, conn)
