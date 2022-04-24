@@ -21,6 +21,5 @@ userGrade = 2
 #udb.addInWishList(NID, 7495, conn)
 
 #print(udb.isUser(NID, "IWasTestins", conn))
-#cursor.execute(udb.timeCollision(NID, conn))
-print(udb.wishListPointAddChosenPoint(NID, conn))
-
+#cursor.execute()
+print(udb.chooseCourse(NID, conn))
