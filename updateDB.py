@@ -102,7 +102,7 @@ def isExceedLimitOfStudent(CourseID, cursor):
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 #results is tuple list
-def ListChosenCourse(NID, cursor):
+def ListChoosableCourse(NID, cursor):
     #source: python_example.py
     cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
     currentTotalPointsOfStudent = cursor.fetchall()
@@ -173,3 +173,6 @@ def isUser(NID, passwd, conn):
     if results == 1:
         return True
     return False
+
+def listChosenList(NID):
+    results = f"select * from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
