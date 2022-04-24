@@ -157,7 +157,7 @@ def TimeIDToTime(TimeID):
     theClass = TimeID % 100
     return [weekRef[week], theClass]
 
-#tested: ABLE TO USE
+# tested: ABLE TO USE
 def isUser(NID, passwd, conn):
     cursor = conn.cursor()
     userPassWd = tsuSHA256(passwd)
@@ -170,5 +170,7 @@ def isUser(NID, passwd, conn):
         return True
     return False
 
+# tested: ABLE TO USE
 def listChosenList(NID):
     results = f"select * from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    return results
