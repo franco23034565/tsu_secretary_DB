@@ -49,14 +49,10 @@ def isMustHaveCourse(Dept,CourseID, cursor):
 #if results' not 0, then theres time collision
 #列出(在已選課表內)且(時間跟欲查課程的時間一樣)的TimeID數量
 def timeCollision(NID):
-    
-    '''
-    results = "SELECT count(TimeID) as colCount from CourseTime"
-    results += f"WHERE CourseID IN (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\')"
-    results += f" and "
-    results += f"TimeID IN (SELECT TimeID FROM CourseTime WHERE CourseID = {CourseID});"
+    results = f"select count(*) from CourseTime where TimeID in (select * from Chosen where NID = \'{NID}\')"
+    results += f" and TimeID in (select * from WishList where NID = \'{NID}\');"
     return results
-    '''
+ 
 #not include time collision 未完成
 def chooseCourse(NID, CourseID):
     '''
