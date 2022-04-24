@@ -14,9 +14,9 @@ userName = "紀彥廷"
 userDept = "資訊工程學系"
 userPasswd = "IWasTesting"
 userGrade = 2
-#udb.addUser(NID, userName, userPasswd, userDept, userGrade, conn)
+udb.addUser(NID, userName, userPasswd, userDept, userGrade, conn)
 #udb.autoChooseMustHaveList(NID, conn)
 #udb.deleteCourse(NID, 9487, conn)
 
-print(udb.isUser(NID, "IWasTestins", conn))
+#print(udb.isUser(NID, "IWasTestins", conn))
     
