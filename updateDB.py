@@ -72,15 +72,35 @@ def chooseCourse(NID, CourseID):
     return results
 
 # tested: ABLE TO USE
-#not include "detect if the course is in NID's Chosen list"
+# 調用此函式需把回傳值results放入html裡呈現結果
 def deleteCourse(NID, CourseID, conn):
+    results = ""
     cursor = conn.cursor()
+    cursor.excute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
+    pointOfCourse = cursor.fetchone()
+    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0];
+    if pointOfresult < 9:
+        results += """  <script>
+                            function(){
+                                alert("\"不能退選\", 退選當前課程會低於學分下限!!")
+                            }
+                        </script>
+                    """
+        return results
+    if isMustHaveCourse(CourseID) == True:
+        results += """  <script>
+                            function alert(){
+                                alert("你已退選您的\"必選課程\"!!")
+                            }
+                        </script>
+                   """
     results1 =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
     cursor.execute(results1)
     conn.commit()
     results2 = f"update AllCourse set HowManyPeople = HowManyPeople - 1 where CourseID = {CourseID};"
     cursor.execute(results2)
     conn.commit()
+    return results
 
 def SameNameCourseCount(NID, CourseID):
     results  = f"select count(*) as CourseCount from AllCourse"
@@ -122,7 +142,7 @@ def isLessThanPointUpperLimit(NID, cursor):
     results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
     cursor.execute(results)
-    temp = cursor.fetall()
+    temp = cursor.fetchone()
     if temp[0] <= 30:
         return True
     return False
@@ -132,7 +152,7 @@ def isGreaterThanPointLowerLimit(NID, cursor):
     results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
     #source: python_example.py
     cursor.execute(results)
-    temp = cursor.fetchall()
+    temp = cursor.fetchone()
     if temp[0] >= 9:
         return True
     return False
