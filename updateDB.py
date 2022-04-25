@@ -59,6 +59,7 @@ TimeID in (select TimeID from CourseTime where CourseID in (SELECT CourseID FROM
     return True
     
 '''
+
 #not include time collision 未完成
 def chooseCourse(NID, CourseID):
     
@@ -200,7 +201,9 @@ def wishListPointAddChosenPoint(NID, conn):
 def showWishList(NID):
     return f"select * from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
 
+
 # tested: ABLE TO USE
+
 def chooseCourse(NID,conn):
     if (timeCollision(NID, conn) == True):
         return "衝堂"     #衝堂
@@ -225,8 +228,10 @@ def chooseCourse(NID,conn):
         conn.commit()
     return results
 
+
 #True when success
 def deleteFromWishList(NID, CourseID, conn):
+
     inWishList = f"select count(*) from WishList where CourseID = {CourseID} and NID = \'{NID}\';"
     cursor = conn.cursor()
     cursor.execute(inWishList)
@@ -238,3 +243,4 @@ def deleteFromWishList(NID, CourseID, conn):
     cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
     conn.commit()
     return True
+
