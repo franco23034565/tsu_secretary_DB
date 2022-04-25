@@ -25,12 +25,14 @@ True or False
 
 * 加入願望清單（課程不存在 已選 已於願望清單皆return false）
 `addInWishList(NID, CourseID, conn)`
+True or False
 
 * 當前學分數
 `currentPoint(NID, conn)`
 
 * 判斷是否為使用者（包括密碼檢查）
 `isUser(NID, passwd, conn)`
+True or False
 
 * 列出已選課表
 `listChosenList(NID)`
