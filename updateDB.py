@@ -318,3 +318,30 @@ def deleteFromWishList(NID, CourseID, conn):
     cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
     conn.commit()
     return True
+
+#（星期幾）第？節，在哪裡\n
+def courseTimeString(CourseID, conn):
+    cursor = conn.cursor()
+    allResults = f"select TimeID, Classroom from CourseTime where CourseID = {CourseID};"
+    cursor.execute(allResults)
+    #return cursor.fetchall()
+    finalResults = ""
+    for (a,b) in cursor.fetchall():
+        coursetime = TimeIDToTime(a)
+        finalResults += f"（{coursetime[0]}）第{coursetime[1]}節，{b}\n"
+    return finalResults
+
+def personalCourseTime(NID, conn):
+    cursor = conn.cursor()
+    searchcoursetime = f"select * from CourseTime where CourseID in (select CourseID from Chosen where NID = \'{NID}\') order by TimeID;"
+    cursor.execute(searchcoursetime)
+    idlist = []
+    for (CourseID, TimeID, Place) in cursor.fetchall():
+        coursetime = TimeIDToTime(TimeID)
+        idlist.append([CourseID, f"（{coursetime[0]}）第{coursetime[1]}節", Place])
+    #return idlist
+    for a in idlist:
+        cursor.execute(f"select CourseName from AllCourse where CourseID = {a[0]};")
+        for (b,) in cursor.fetchall():
+            a[0] = b
+    return idlist
