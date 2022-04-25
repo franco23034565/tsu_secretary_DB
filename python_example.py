@@ -99,7 +99,7 @@ def printOwnCourse():
     """
     results +=  f"<h1>Welcome, {username} </h1>"
     results +=  f"""<form method="post" action="/AddCourse" >
-                        <button type="submit" name={username} value="*">去選課!</button>
+                        <button type="submit" name="courseID" value="0">去選課!</button>
                     </form>"""
                 
     results += f"<h2>已選課表</h2>"
@@ -195,6 +195,10 @@ def AddUsers():
 
 @app.route('/AddCourse',methods=['POST'])
 def AddCourse():
+    truth = {0:"否", 1:"是"}
+    CourseID = request.form.get("courseID")
+    if not(CourseID=="0"):
+        DB.addInWishList(StudentID,CourseID,conn)
     cursor.execute(DB.showWishList(StudentID))
     results = """
         <style>
@@ -214,9 +218,9 @@ def AddCourse():
         </style>
         <p><a href="/">Back to Query Interface</a></p>"""
     results +=  f"<h1>Welcome, {StudentID} </h1>"
-    results +=   f"""<form method="post" action="/index3" >
+    results +=   f"""<form method="post" action="" >
                         課程ID:<p><input type="text" name="courseID">
-                        <button type="submit" name="AllCourse" value="*">選課</button>
+                        <button type="submit" >選課</button>
                     </form>
                 """
     results += f"<h2>願望清單</h>"
