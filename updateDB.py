@@ -32,7 +32,7 @@ def listChosenListID(NID):
     return results
 
 
-def chosenList(NID, conn):
+def pyChosenList(NID, conn):
     cursor = conn.cursor()
     cursor.execute(listChosenListID(NID))
     finalList = []
@@ -44,7 +44,7 @@ def chosenList(NID, conn):
 def showWishListID(NID):
     return f"select CourseID from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
 
-def wishList(NID, conn):
+def pyWishList(NID, conn):
     cursor = conn.cursor()
     cursor.execute(showWishListID(NID))
     finalList = []
@@ -142,7 +142,7 @@ def addInWishList(NID, CourseID, conn):
     cursor = conn.cursor()
     if (isCourse(CourseID, conn) == False):
         return False
-    if CourseID in chosenList(NID, conn) or CourseID in wishList(NID, conn):
+    if CourseID in pyChosenList(NID, conn) or CourseID in pyWishList(NID, conn):
         return False
     results = f"insert into WishList values(\'{NID}\', {CourseID});"
     cursor.execute(results)
