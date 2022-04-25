@@ -4,14 +4,53 @@ import MySQLdb
 def tsuSHA256(aString):
     return str(sha256(aString.encode("utf-8")).hexdigest())
 
+def haveSameNID(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"select count(*) from Users where NID = \'{NID}\';")
+    results = 0
+    for (a,) in cursor.fetchall():
+        results = a
+    if (results == 1):
+        return True
+    return False
+
 # tested: ABLE TO USE
 #add user with password using SHA256 hash function
 def addUser(NID, UserName, UserPassword, Dept, Grade, conn):
+    if (haveSameNID(NID, conn)):
+        return False
     cursor = conn.cursor()
     passwd = tsuSHA256(UserPassword)
     results = f"insert into Users values(\'{NID}\', \'{UserName}\', \'{passwd}\', \'{Dept}\', {Grade});"
     cursor.execute(results)
     conn.commit()
+    return True
+
+# tested: ABLE TO USE
+def listChosenListID(NID):
+    results = f"select CourseID from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    return results
+
+
+def pyChosenList(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(listChosenListID(NID))
+    finalList = []
+    for (a,) in cursor.fetchall():
+        finalList.append(a)
+    return finalList
+
+# tested: ABLE TO USE
+def showWishListID(NID):
+    return f"select CourseID from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
+
+def pyWishList(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(showWishListID(NID))
+    finalList = []
+    for (a,) in cursor.fetchall():
+        finalList.append(a)
+    return finalList
 
 # tested: ABLE TO USE
 #list all Courses that a user must have
@@ -34,8 +73,7 @@ def autoChooseMustHaveList(NID, conn):
         conn.commit()
   
 def isMustHaveCourse(Dept,CourseID, cursor):
-
-    results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID}"
+    results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
     tempA = cursor.fetchall()
     
@@ -110,12 +148,26 @@ def SameNameCourseCount(NID, CourseID):
     results += f"CourseID <> {CourseID};"
     return results
 
+def isCourse(CourseID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"select count(*) from AllCourse where CourseID = {CourseID};")
+    results = 0
+    for (a,) in cursor.fetchall():
+        results = a
+    if (results == 1):
+        return True
+    return False
 
 def addInWishList(NID, CourseID, conn):
     cursor = conn.cursor()
+    if (isCourse(CourseID, conn) == False):
+        return False
+    if CourseID in pyChosenList(NID, conn) or CourseID in pyWishList(NID, conn):
+        return False
     results = f"insert into WishList values(\'{NID}\', {CourseID});"
     cursor.execute(results)
     conn.commit()
+    return True
 
 def isExceedLimitOfStudent(CourseID, cursor):
     results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"

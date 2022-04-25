@@ -195,6 +195,7 @@ def AddUsers():
 
 @app.route('/AddCourse',methods=['POST'])
 def AddCourse():
+    truth = {0:"否", 1:"是"}
     cursor.execute(DB.showWishList(StudentID))
     results = """
         <style>
