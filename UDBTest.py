@@ -22,4 +22,5 @@ userGrade = 2
 #print(udb.isUser(NID, "IWasTestins", conn))
 #cursor.execute()
 #print(udb.chooseCourse(NID, conn))
-print(udb.addInWishList(NID, 5477, conn))
+print(udb.courseTimeString(9487, conn))
+#print(udb.addInWishList(NID, 5477, conn))
