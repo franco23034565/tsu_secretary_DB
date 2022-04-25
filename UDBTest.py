@@ -19,7 +19,7 @@ userGrade = 2
 #udb.autoChooseMustHaveList(NID, conn)
 #udb.deleteCourse(NID, 9487, conn)
 #udb.addInWishList(NID, 7495, conn)
-
 #print(udb.isUser(NID, "IWasTestins", conn))
 #cursor.execute()
-print(udb.chooseCourse(NID, conn))
+#print(udb.chooseCourse(NID, conn))
+print(udb.addInWishList(NID, 5477, conn))
