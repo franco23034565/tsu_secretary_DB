@@ -59,6 +59,7 @@ TimeID in (select TimeID from CourseTime where CourseID in (SELECT CourseID FROM
     return True
     
 '''
+
 #not include time collision 未完成
 def chooseCourse(NID, CourseID):
     
