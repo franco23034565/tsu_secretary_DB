@@ -4,14 +4,54 @@ import MySQLdb
 def tsuSHA256(aString):
     return str(sha256(aString.encode("utf-8")).hexdigest())
 
+def haveSameNID(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"select count(*) from Users where NID = \'{NID}\';")
+    results = 0
+    for (a,) in cursor.fetchall():
+        results = a
+    if (results == 1):
+        return True
+    return False
+
 # tested: ABLE TO USE
 #add user with password using SHA256 hash function
 def addUser(NID, UserName, UserPassword, Dept, Grade, conn):
+    if (haveSameNID(NID, conn)):
+        return False
     cursor = conn.cursor()
     passwd = tsuSHA256(UserPassword)
     results = f"insert into Users values(\'{NID}\', \'{UserName}\', \'{passwd}\', \'{Dept}\', {Grade});"
     cursor.execute(results)
     conn.commit()
+    return True
+
+# tested: ABLE TO USE
+def listChosenListID(NID):
+    results = f"select * from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    return results
+
+
+def pyChosenList(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(listChosenListID(NID))
+    finalList = []
+    for (CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave) in cursor.fetchall():
+        temp = classroomAndCourseTime(CourseID, conn)
+        finalList.append(CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave, temp)
+    return finalList
+
+# tested: ABLE TO USE
+def showWishListID(NID):
+    return f"select CourseID from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
+
+def pyWishList(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(showWishListID(NID))
+    finalList = []
+    for (a,) in cursor.fetchall():
+        finalList.append(a)
+    return finalList
 
 # tested: ABLE TO USE
 #list all Courses that a user must have
@@ -34,8 +74,7 @@ def autoChooseMustHaveList(NID, conn):
         conn.commit()
   
 def isMustHaveCourse(Dept,CourseID, cursor):
-
-    results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID}"
+    results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
     tempA = cursor.fetchall()
     
@@ -59,7 +98,6 @@ TimeID in (select TimeID from CourseTime where CourseID in (SELECT CourseID FROM
     return True
     
 '''
-
 #not include time collision 未完成
 def chooseCourse(NID, CourseID):
     
@@ -110,12 +148,26 @@ def SameNameCourseCount(NID, CourseID):
     results += f"CourseID <> {CourseID};"
     return results
 
+def isCourse(CourseID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"select count(*) from AllCourse where CourseID = {CourseID};")
+    results = 0
+    for (a,) in cursor.fetchall():
+        results = a
+    if (results == 1):
+        return True
+    return False
 
 def addInWishList(NID, CourseID, conn):
     cursor = conn.cursor()
+    if (isCourse(CourseID, conn) == False):
+        return False
+    if CourseID in pyChosenList(NID, conn) or CourseID in pyWishList(NID, conn):
+        return False
     results = f"insert into WishList values(\'{NID}\', {CourseID});"
     cursor.execute(results)
     conn.commit()
+    return True
 
 def isExceedLimitOfStudent(CourseID, cursor):
     results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"
@@ -228,21 +280,22 @@ def showWishList(NID):
 # tested: ABLE TO USE
 
 def chooseCourse(NID,conn):
-    if (timeCollision(NID, conn) == True):
-        return "衝堂"     #衝堂
-    
-    if (wishListPointAddChosenPoint(NID, conn) > 30):
-        return "超出學分上限"     #超出上限
-    
     wishList = f"select CourseID from WishList where NID = \'{NID}\';"
     cursor = conn.cursor()
     cursor.execute(wishList)
-    results = "成功!"
+    results = ""
     for (CourseID,) in cursor.fetchall():
         if (isExceedLimitOfStudent(CourseID, cursor) == True):
             #print(f"{CourseID} Exceed People Limit\n")
-            results += f", 超出人數上限：{CourseID}"
+            results += f"超出人數上限：{CourseID}\n"
             continue
+        if (wishListPointAddChosenPoint(NID, conn) > 30):
+            results += f"超出學分上限: {CourseID}\n"
+            continue
+        if (timeCollision(NID, conn) == True):
+            results += f"{CourseID} 與已選課程衝堂\n"
+            continue
+        results += f"{CourseID} 成功加選\n"
         cursor.execute(f"insert into Chosen values(\'{NID}\', {CourseID});")
         conn.commit()
         cursor.execute(f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};")
@@ -266,3 +319,43 @@ def deleteFromWishList(NID, CourseID, conn):
     cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
     conn.commit()
     return True
+
+#（星期幾）第？節，在哪裡\n
+def courseTimeString(CourseID, conn):
+    cursor = conn.cursor()
+    allResults = f"select TimeID, Classroom from CourseTime where CourseID = {CourseID};"
+    cursor.execute(allResults)
+    #return cursor.fetchall()
+    finalResults = ""
+    for (a,b) in cursor.fetchall():
+        coursetime = TimeIDToTime(a)
+        finalResults += f"（{coursetime[0]}）第{coursetime[1]}節，{b}\n"
+    return finalResults
+
+def personalCourseTime(NID, conn):
+    cursor = conn.cursor()
+    searchcoursetime = f"select * from CourseTime where CourseID in (select CourseID from Chosen where NID = \'{NID}\') order by TimeID;"
+    cursor.execute(searchcoursetime)
+    idlist = []
+    for (CourseID, TimeID, Place) in cursor.fetchall():
+        coursetime = TimeIDToTime(TimeID)
+        idlist.append([CourseID, f"（{coursetime[0]}）第{coursetime[1]}節", Place])
+    #return idlist
+    for a in idlist:
+        cursor.execute(f"select CourseName from AllCourse where CourseID = {a[0]};")
+        for (b,) in cursor.fetchall():
+            a[0] = b
+    return idlist
+
+
+def showLimit():
+    return """<script>
+                function(){
+                    alert("提醒: 學分最高不能超過30，最低不能低於9")
+                }
+            </script>"""
+
+def classroomAndCourseTime(CourseID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT TimeID, Classroom FROM CourseTime WHERE CourseID = {CourseID}")
+    return cursor.fetchall()
