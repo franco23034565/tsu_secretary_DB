@@ -77,6 +77,7 @@ def autoChooseMustHaveList(NID, conn):
         conn.commit()
         cursor.execute(addChosen)
         conn.commit()
+
     '''
 def isMustHaveCourse(Dept,CourseID, conn):
     cursor = conn.cursor()
@@ -222,6 +223,7 @@ def isMustHaveCourse(CourseID, conn):
     #source: python_example.py
     cursor.execute(results)
     temp = cursor.fetchall()
+
     if temp[0][0] == True:
         return True
     return False
@@ -325,7 +327,7 @@ def deleteFromWishList(NID, CourseID, conn):
     cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
     conn.commit()
     return True
-
+  
 
 def classroomAndCourseTime(CourseID, conn):
     cursor = conn.cursor()
@@ -363,6 +365,7 @@ def showLimit():
                     alert("提醒: 學分最高不能超過30，最低不能低於9")
                 }
             </script>"""
+
 
 def showName(NID, conn):
     cursor = conn.cursor()
