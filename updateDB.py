@@ -335,10 +335,10 @@ def classroomAndCourseTime(CourseID, conn):
 
 #（星期幾）第？節，在哪裡\n
 def courseTimeString(CourseID, conn):
-    finalResults = ""
+    finalResults = "｜"
     for (a,b) in classroomAndCourseTime(CourseID, conn):
         coursetime = TimeIDToTime(a)
-        finalResults += f"（{coursetime[0]}）第{coursetime[1]}節，{b}\n"
+        finalResults += f"（{coursetime[0]}）第{coursetime[1]}節，{b}｜"
     return finalResults
 
 def personalCourseTime(NID, conn):
