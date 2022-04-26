@@ -1,365 +1,277 @@
-from hashlib import sha256
+#!/usr/bin/env python3
+# coding=utf-8
+# -*- coding: UTF-8 -*-
+#set==0無狀態 set==1新增 set==2刪除 set==3 送出跳轉
+from unittest import result
+from flask import Flask, request
 import MySQLdb
+import updateDB as DB
+conn = MySQLdb.connect(host="127.0.0.1",
+                           user="hj",
+                           passwd="test1234",
+                           db="testdb")
+cursor = conn.cursor()
 
-def tsuSHA256(aString):
-    return str(sha256(aString.encode("utf-8")).hexdigest())
-
-def haveSameNID(NID, conn):
-    cursor = conn.cursor()
-    cursor.execute(f"select count(*) from Users where NID = \'{NID}\';")
-    results = 0
-    for (a,) in cursor.fetchall():
-        results = a
-    if (results == 1):
-        return True
-    return False
-
-# tested: ABLE TO USE
-#add user with password using SHA256 hash function
-def addUser(NID, UserName, UserPassword, Dept, Grade, conn):
-    if (haveSameNID(NID, conn)):
-        return False
-    cursor = conn.cursor()
-    passwd = tsuSHA256(UserPassword)
-    results = f"insert into Users values(\'{NID}\', \'{UserName}\', \'{passwd}\', \'{Dept}\', {Grade});"
-    cursor.execute(results)
-    conn.commit()
-    return True
-
-# tested: ABLE TO USE
-def listChosenListID(NID):
-    results = f"select CourseID from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
-    return results
-
-
-def pyChosenList(NID, conn):
-    cursor = conn.cursor()
-    cursor.execute(listChosenListID(NID))
-    finalList = []
-    '''
-    for (CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave) in cursor.fetchall():
-        temp = classroomAndCourseTime(CourseID, conn)
-        finalList.append(CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave, temp)
-    '''
-    for (a,) in cursor.fetchall():
-        finalList.append(a)
-
-    return finalList
-
-# tested: ABLE TO USE
-def showWishListID(NID):
-    return f"select CourseID from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
-
-def pyWishList(NID, conn):
-    cursor = conn.cursor()
-    cursor.execute(showWishListID(NID))
-    finalList = []
-    for (a,) in cursor.fetchall():
-        finalList.append(a)
-    return finalList
-
-# tested: ABLE TO USE
-#list all Courses that a user must have
-def mustHaveList(NID):
-    return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
-
-# tested: ABLE TO USE
-#automate the "choose MustHave" process
-def autoChooseMustHaveList(NID, conn):
-    cursor = conn.cursor()
-    cursor.execute(mustHaveList(NID))
-    for (CourseID,) in cursor.fetchall():
-        addAllCoursePeople = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
-        addChosen = f"insert into Chosen values(\'{NID}\', {CourseID});"
-        #print(addAllCoursePeople)
-        #print(addChosen)
-        cursor.execute(addAllCoursePeople)
-        conn.commit()
-        cursor.execute(addChosen)
-        conn.commit()
-  
-def isMustHaveCourse(Dept,CourseID, cursor):
-    results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID};"
-    cursor.execute(results)
-    tempA = cursor.fetchall()
-    
-    #source: python_example.py
-    if (tempA[0] == True) and (tempA[1] == Dept) :
-        return True
-    return False
-
-
-#tested: ABLE TO USE
-def timeCollision(NID, CourseID, conn):
-    cursor = conn.cursor()
-    exxe = f"select count(*) from CourseTime where TimeID in "
-    exxe += f"(select TimeID from CourseTime where CourseID in (select CourseID from Chosen where NID = \'{NID}\')) and "
-    exxe += f"TimeID in (select TimeID from CourseTime where CourseID = {CourseID});"
-    cursor.execute(exxe)
-    results = 0
-    for (a,) in cursor.fetchall():
-        results = a
-    if (results == 0):
-        return False
-    return True
-    
+app = Flask(__name__)
 '''
-#not include time collision 未完成
-def chooseCourse(NID, CourseID):
+    form = """
+    <form method="post" action="/action" >
+        文字輸出欄位：<input name="my_head">
+        <input type="submit" value="送出">
+    </form>
+    <button >
     
-    timeTable = timeCollision(NID, CourseID)
-    currentTimeOfCourse = f"SELECT TimeID FROM CourseTime WHERE CourseID = {CourseID}"
-    result = f"IF (NOT EXISTS(SELECT TimeID FROM {currentTimeOfCourse} INNER JOIN {timeTable} ON {currentTimeOfCourse}.TimeID = {timeTable}.TimeID))"
-    if 
-    
-    results = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
-    results += f"insert into Chosen values(\'{NID}\', {CourseID});"
-    return results
+    <form method="post" action="/action2">
+        <button type="submit" name="AllCourse" value="CourseID, CourseName">Click Me 2</button>
+        登入帳號：<input type="text" name="user">
+        密碼：<input type="password" name="passwd">
+        <input type="submit" name="submit" value="送出">
+    </form>
+    """
 '''
-# tested: ABLE TO USE
-# 調用此函式需把回傳值results放入html裡呈現結果
-def deleteCourse(NID, CourseID, conn):
-    results = ""
-    cursor = conn.cursor()
-    cursor.excute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
-    pointOfCourse = cursor.fetchone()
-    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0];
-    if pointOfresult < 9:
-        results += """  <script>
-                            function(){
-                                alert("\"不能退選\", 退選當前課程會低於學分下限!!")
-                            }
-                        </script>
+#<form method="post" action="/printOwnCourse">
+ #       <p>登入帳號：<p><input type="text" name="user">
+  #      <p>密碼：<p><input type="password" name="passwd">
+   #     <p><button type="submit" value="*">送出</button>
+    #</from>
+#
+ #   <form method="post" action="/index2" >
+  #      <button type="submit" value="*">新增使用者</button>
+   # </form>
+
+
+@app.route('/')
+
+def index():
+
+    form = f"""
+    <form method="post" action="/index2">
+        <button type="submit" value="*">新增使用者</button>
+    </form>
+    <form method="post" action="/printAllCourse" >
+        <button type="submit" name="AllCourse" value="*">顯示所有課程</button>
+    </form>
+    <form method="post" action="/printOwnCourse">
+        <p>登入帳號：</p><input type="text" name="user">
+        <p>密碼：</p><input type="password" name="passwd">
+        <p><button type="submit" name="set"value="1">送出</button>
+    </from>
+    """
+    return form
+
+@app.route('/printOwnCourse', methods=['POST'])
+def printOwnCourse():
+    truth = {0:"否", 1:"是"}
+    results=""
+    username = request.form.get("user")
+    passwd = request.form.get("passwd")
+    if username == "" or passwd == "":
+        results = "<h1>帳號密碼不能為空</h1>"
+        results += """<p><a href="/">Back to Query Interface</a></p>"""
+        return results
+    elif (DB.isUser(username, passwd, conn)== False):
+        results = "<h1>帳號或密碼錯誤</h1>"
+        results += """<p><a href="/">Back to Query Interface</a></p>"""
+        results += """ <form method="post" action="/index2" >
+                            <button type="submit" value="*">新增使用者</button>
+                        </form>
                     """
         return results
-    if isMustHaveCourse(CourseID) == True:
-        results += """  <script>
-                            function alert(){
-                                alert("你已退選您的\"必選課程\"!!")
-                            }
-                        </script>
-                   """
-    results1 =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
-    cursor.execute(results1)
-    conn.commit()
-    results2 = f"update AllCourse set HowManyPeople = HowManyPeople - 1 where CourseID = {CourseID};"
-    cursor.execute(results2)
-    conn.commit()
-    return results
-
-def SameNameCourseCount(NID, CourseID):
-    results  = f"select count(*) as CourseCount from AllCourse"
-    results += f"where CourseName in (select CourseName from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\'))" #在已選課表中的所有課名
-    results += f" and "
-    results += f"CourseID <> {CourseID};"
-    return results
-
-def isCourse(CourseID, conn):
-    cursor = conn.cursor()
-    cursor.execute(f"select count(*) from AllCourse where CourseID = {CourseID};")
-    results = 0
-    for (a,) in cursor.fetchall():
-        results = a
-    if (results == 1):
-        return True
-    return False
-
-def addInWishList(NID, CourseID, conn):
-    cursor = conn.cursor()
-    if (isCourse(CourseID, conn) == False):
-        return False
-    if CourseID in pyChosenList(NID, conn) or CourseID in pyWishList(NID, conn):
-        return False
-    results = f"insert into WishList values(\'{NID}\', {CourseID});"
-    cursor.execute(results)
-    conn.commit()
-    return True
-
-def isExceedLimitOfStudent(CourseID, cursor):
-    results = f"SELECT HowManyPeople,PeopleLimit FROM AllCourse WHERE CourseID = {CourseID};"
-    cursor.execute(results)
-    tempA = cursor.fetchall()
-    #return tempA
-    return tempA[0][0]>=tempA[0][1]#true or false
-
-#lists all CourseName, CourseID, Point that don't exceed limit of Point
-#results is tuple list
-def ListChoosableCourse(NID, cursor):
-    #source: python_example.py
-    cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
-    currentTotalPointsOfStudent = cursor.fetchall()
-    cursor.execute(f"SELECT CourseName, CourseID, Point FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen where NID = \'{NID}\');")
-    notChosenList = cursor.fetchall()
-    results = []
-    for (CourseName, CourseID, Point) in notChosenList:
-        sum = currentTotalPointsOfStudent + Point
-        if 9 <= sum and sum <= 30:
-            results.append((CourseName, CourseID, Point)) 
+    else:
+        global StudentID
+        StudentID= username
+        cursor.execute(DB.listChosenList(StudentID))
+        Set = request.form.get("set")
+        if (Set=="2"):
+            CourseID = request.form.get("courseID")
+            results +=f"{CourseID}"
+            #DB.deleteCourse(StudentID,CourseID,conn)
+        results += """
+    <style>
+        table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+    <p><a href="/">Back to Query Interface</a></p>
+    """
+    results +=  f"<h1>Welcome, {username} </h1>"
+    results +=  f"""<form method="post" action="/AddCourse" >
+                        <button type="submit" name="set" value="0">去選課!</button>
+                    </form>"""
+                
+    results += f"<h2>已選課表</h2>"
+    results += "<table>"
+    # 取得並列出所有查詢結果
+    #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
+    results += "<tr>"
+    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th><th>退選</th>"
+    results += "</tr>"
+    for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
+        str(CourseID)
+        results += "<tr>"
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
+        results += f"""<td>
+                            <form method="post" action="" >
+                            <input type="hidden"  name="courseID" value={CourseID}>
+                            <input type="hidden"  name="user" value={username}>
+                            <input type="hidden"  name="passwd" value={passwd}>
+                            <button type="submit" name="set" value="2" >取消</button>
+                            </form>
+                        </td>
+                    """
+        results += "</tr>"            
+    results += "</table>"
     return results
 
 
-def isLessThanPointUpperLimit(NID, cursor):
-    results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
-    #source: python_example.py
-    cursor.execute(results)
-    temp = cursor.fetchone()
-    if temp[0] <= 30:
-        return True
-    return False
 
 
-def isGreaterThanPointLowerLimit(NID, cursor):
-    results = f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');"
-    #source: python_example.py
-    cursor.execute(results)
-    temp = cursor.fetchone()
-    if temp[0] >= 9:
-        return True
-    return False
-
-def isMustHaveCourse(CourseID, cursor):
-    results =  f"SELECT MustHave FROM AllCourse WHERE CourseID = {CourseID}"
-    #source: python_example.py
-    cursor.execute(results)
-    temp = cursor.fetchall()
-    if temp[0] == True:
-        return True
-    return False
-
-# tested: ABLE TO USE
-# if current point = 0, then return None
-def currentPoint(NID, conn):
-    cursor = conn.cursor()   
-    results = f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
-    cursor.execute(results)
-    CurrentPoints = 0
-    for (a,) in cursor.fetchall():
-        CurrentPoints = a
-    return CurrentPoints
-
-#return [星期幾(string), 第幾節課(int)]
-def TimeIDToTime(TimeID):
-    weekRef = {1 :"一", 2: "二", 3: "三", 4: "四",
-               5: "五", 6: "六", 7: "日"}
-    week = (int)(TimeID/100)
-    #print(week)
-    theClass = TimeID % 100
-    return [weekRef[week], theClass]
-
-# tested: ABLE TO USE
-def isUser(NID, passwd, conn):
+@app.route('/printAllCourse', methods=['POST'])
+def printAllCourse():
+    truth = {0:"否", 1:"是"}
+    # 取得輸入的文字
+    my_head = request.form.get("AllCourse")
+    # 建立資料庫連線
+    
+    # 欲查詢的 query 指令
+    #query1 = "SELECT * FROM AllCourse;"
+    query1 = "SELECT {} FROM AllCourse;".format(my_head)
+    # 執行查詢
     cursor = conn.cursor()
-    userPassWd = tsuSHA256(passwd)
-    searchsql = f"select count(*) from Users where NID = \'{NID}\' and UserPassword = \'{userPassWd}\';"
-    cursor.execute(searchsql)
-    results = 0
-    for (amount,) in cursor.fetchall():
-        results += amount
-    if results == 1:
-        return True
-    return False
+    cursor.execute(query1)
 
-# tested: ABLE TO USE
-def listChosenList(NID):
-    results = f"select * from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    results = """
+    <style>
+        table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+    <p><a href="/">Back to Query Interface</a></p>
+    """
+    results += "<table>"
+    # 取得並列出所有查詢結果
+    #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
+    results += "<tr>"
+    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th>"
+    results += "</tr>"
+    for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
+        results += "<tr>"
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
+        results += "</tr>"
+    results += "</table>"
+    results += "<h1>Welcome</h1>"
     return results
 
-# tested: ABLE TO USE
-def wishListPoint(NID, conn):
-    cursor = conn.cursor()   
-    results = f"select sum(Points) as CurrentPoint from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
-    cursor.execute(results)
-    CurrentPoints = 0
-    for (a,) in cursor.fetchall():
-        CurrentPoints = a
-    return CurrentPoints
+@app.route('/index2', methods=['POST'])
+def index2():
+    form = """
+    <form method="post" action="/AddUsers">
+        <p>帳號：<p><input type="text" name="user">
+        <p>密碼：<p><input type="password" name="passwd">
+        <p>你的資料:
+        <p>名字<input type="text" name="name">
+        <p>系所<input type="text" name="dept">
+        <p>年級<input type="text" name="grade">
+        <p><button type="submit" value="*">送出</button>
+    </from>
+    """
+    return form 
 
-# tested: ABLE TO USE
-def wishListPointAddChosenPoint(NID, conn):
-    return currentPoint(NID, conn) + wishListPoint(NID, conn)
-
-# tested: ABLE TO USE
-def showWishList(NID):
-    return f"select * from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');"
-
-
-# tested: ABLE TO USE
-
-def chooseCourse(NID,conn):
-    wishList = f"select CourseID from WishList where NID = \'{NID}\';"
-    cursor = conn.cursor()
-    cursor.execute(wishList)
-    results = ""
-    if (wishListPointAddChosenPoint(NID, conn) > 30):
-        results += f"超出學分上限: {CourseID}\n"
-        return results
-    for (CourseID,) in cursor.fetchall():
-        if (isExceedLimitOfStudent(CourseID, cursor) == True):
-            #print(f"{CourseID} Exceed People Limit\n")
-            results += f"超出人數上限：{CourseID}\n"
-            continue
-        if (timeCollision(NID, CourseID, conn) == True):
-            results += f"{CourseID} 與已選課程衝堂\n"
-            continue
-        results += f"{CourseID} 成功加選\n"
-        cursor.execute(f"insert into Chosen values(\'{NID}\', {CourseID});")
-        conn.commit()
-        cursor.execute(f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};")
-        conn.commit()
-        cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
-        conn.commit()
+@app.route('/AddUsers', methods=['POST'])
+def AddUsers():
+    NID = request.form.get("user")
+    UserPassword = request.form.get("passwd")
+    UserName = request.form.get("name")
+    Dept = request.form.get("dept")
+    Grade = request.form.get("grade")
+    DB.addUser(NID, UserName, UserPassword, Dept, Grade, conn)
+    DB.autoChooseMustHaveList(NID,conn)
+    results = "<h1>新增成功，已將必選課程列入課表</h1>"
+    results += """<p><a href="/">Back to Query Interface</a></p>"""
     return results
 
+@app.route('/AddCourse',methods=['POST'])
+def AddCourse():
+    results =""
+    truth = {0:"否", 1:"是"}
+    Set = request.form.get("set")
+    if (Set=="1"):
+        CourseID = request.form.get("courseID")
+        DB.addInWishList(StudentID,CourseID,conn)
+    if (Set=="2"):#deleteWishList
+        CourseID = request.form.get("courseID")
+        #results +=f"""{CourseID}"""
+        DB.deleteFromWishList(StudentID,CourseID,conn)
+    if (Set=="3"):
+        results +="DB.chooseCourse(StudentID,conn)"   
+        
+    cursor.execute(DB.showWishList(StudentID))
+    results += """
+        <style>
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+            }
+            td, th {
+                border: 1px solid #dddddd;
+                text-align: left;
+                padding: 8px;
+            }
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+        </style>
+        <p><a href="/">Back to Query Interface</a></p>"""
+    results +=  f"<h1>Welcome, {StudentID} </h1>"
+    results +=   f"""<form method="post" action="" >
+                        課程ID:<p><input type="text" name="courseID">
+                        <button type="submit" name="set" value="1">選課</button>
+                    </form>
+                """
+    results += f"<h2>願望清單</h>"
+    results += "<table>"
+    # 取得並列出所有查詢結果
+    #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
+    results += "<tr>"
+    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th><th>取消關注</th>"
+    results += "</tr>"
+    for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
+        str(CourseID)
+        results += "<tr>"
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
+        results += f"""<td>
+                            <form method="post" action="" >
+                            <input type="hidden"  name="courseID" value={CourseID}>
+                            <button type="submit" name="set" value="2" >取消</button>
+                            </form>
+                        </td>
+                    """
+        results += "</tr>"
+    results += "</table>"
+    results += f"""<form method="post" action="" >
+                        <button type="submit" name="set" value="3">加入已選課表</button>
+                    </form>
+                """
+    return results
 
-#True when success
-def deleteFromWishList(NID, CourseID, conn):
-
-    inWishList = f"select count(*) from WishList where CourseID = {CourseID} and NID = \'{NID}\';"
-    cursor = conn.cursor()
-    cursor.execute(inWishList)
-    wishCount = 0
-    for (a,) in cursor.fetchall():
-        wishCount = a
-    if (wishCount != 1):
-        return False
-    cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
-    conn.commit()
-    return True
-
-
-def classroomAndCourseTime(CourseID, conn):
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT TimeID, Classroom FROM CourseTime WHERE CourseID = {CourseID};")
-    return cursor.fetchall()
-
-
-#（星期幾）第？節，在哪裡\n
-def courseTimeString(CourseID, conn):
-    finalResults = "｜"
-    for (a,b) in classroomAndCourseTime(CourseID, conn):
-        coursetime = TimeIDToTime(a)
-        finalResults += f"（{coursetime[0]}）第{coursetime[1]}節，{b}｜"
-    return finalResults
-
-def personalCourseTime(NID, conn):
-    cursor = conn.cursor()
-    searchcoursetime = f"select * from CourseTime where CourseID in (select CourseID from Chosen where NID = \'{NID}\') order by TimeID;"
-    cursor.execute(searchcoursetime)
-    idlist = []
-    for (CourseID, TimeID, Place) in cursor.fetchall():
-        coursetime = TimeIDToTime(TimeID)
-        idlist.append([CourseID, f"（{coursetime[0]}）第{coursetime[1]}節", Place])
-    #return idlist
-    for a in idlist:
-        cursor.execute(f"select CourseName from AllCourse where CourseID = {a[0]};")
-        for (b,) in cursor.fetchall():
-            a[0] = b
-    return idlist
-
-
-def showLimit():
-    return """<script>
-                function(){
-                    alert("提醒: 學分最高不能超過30，最低不能低於9")
-                }
-            </script>"""

@@ -85,7 +85,7 @@ def printOwnCourse():
         if (Set=="2"):
             CourseID = request.form.get("courseID")
             results +=f"{CourseID}"
-            #DB.deleteCourse(StudentID,CourseID,conn)
+            DB.deleteCourse(StudentID,CourseID,conn)
         results += """
     <style>
         table {
@@ -223,7 +223,8 @@ def AddCourse():
         #results +=f"""{CourseID}"""
         DB.deleteFromWishList(StudentID,CourseID,conn)
     if (Set=="3"):
-        results +="DB.chooseCourse(StudentID,conn)"   
+        #results += Set
+        print(DB.chooseCourse(StudentID,conn))   
         
     cursor.execute(DB.showWishList(StudentID))
     results += """
