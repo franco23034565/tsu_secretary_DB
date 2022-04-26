@@ -131,6 +131,7 @@ def printOwnCourse():
                     """
         results += "</tr>"            
     results += "</table>"
+    #results += """<p><a href="/personalTime">Personal CourseTime</a></p>"""
     return results
 
 
@@ -273,4 +274,37 @@ def AddCourse():
                         <button type="submit" name="set" value="3">加入已選課表</button>
                     </form>
                 """
+    return results
+
+@app.route('/personalTime', methods=['POST','GET'])
+def pCourseTime():
+    personalList = DB.personalCourseTime(StudentID, conn)
+    results = """
+    <style>
+        table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+        }
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+    <p><a href="/">Back to Query Interface</a></p>
+    """
+    results += "<table>"
+    results += "<tr>"
+    results += "<th>課程名稱</th> <th>時間</th> <th>地點</th>"
+    results += "</tr>"
+    for a in personalList:
+        results += "<tr>"
+        for b in a:
+            results += f" <td>{b}</td> "
+        results += "</tr>"
+    results += "</table>"
     return results
