@@ -12,6 +12,13 @@ conn = MySQLdb.connect(host="127.0.0.1",
                            db="testdb")
 cursor = conn.cursor()
 
+def isInt(a):
+    try:
+        int(a)
+    except:
+        return False
+    return True
+
 app = Flask(__name__)
 '''
     form = """
@@ -222,7 +229,12 @@ def AddCourse():
     Set = request.form.get("set")
     if (Set=="1"):
         CourseID = request.form.get("courseID")
-        DB.addInWishList(StudentID,CourseID,conn)
+        if (isInt(CourseID) == False):
+            results += "請輸入課程ID"
+        elif (DB.addInWishList(StudentID,int(CourseID),conn) == False):
+            results += "無此課程或該課程已選"
+        else:
+            results += "成功加入願望清單"
     if (Set=="2"):#deleteWishList
         CourseID = request.form.get("courseID")
         #results +=f"""{CourseID}"""

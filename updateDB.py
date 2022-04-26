@@ -167,7 +167,17 @@ def addInWishList(NID, CourseID, conn):
     cursor = conn.cursor()
     if (isCourse(CourseID, conn) == False):
         return False
-    if CourseID in pyChosenList(NID, conn) or CourseID in pyWishList(NID, conn):
+    #cursor.execute(f"select CourseID from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');")
+    #for (cID,) in cursor.fetchall():
+    #    if CourseID == cID:
+    #        return False
+    if CourseID in pyChosenList(NID, conn):
+        return False
+    #cursor.execute(f"select CourseID from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');")
+    #for (cID,) in cursor.fetchall():
+    #    if CourseID == cID:
+    #        return False
+    if CourseID in pyWishList(NID, conn):
         return False
     results = f"insert into WishList values(\'{NID}\', {CourseID});"
     cursor.execute(results)
