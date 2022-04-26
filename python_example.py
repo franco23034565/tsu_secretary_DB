@@ -11,6 +11,14 @@ conn = MySQLdb.connect(host="127.0.0.1",
                            db="testdb")
 cursor = conn.cursor()
 
+def studentIDToName(NID,conn):
+    cursor = conn.cursor()
+    cursor.execute(f"select UserName from Users where NID = \'{NID}\';")
+    studentName = ""
+    for (a,) in cursor.fetchall():
+        studentName = a
+    return studentName
+
 app = Flask(__name__)
 '''
     form = """
@@ -77,7 +85,8 @@ def printOwnCourse():
         return results
     else:
         global StudentID
-        StudentID= username
+        StudentID = username
+        studentName = studentIDToName(username, conn)
         cursor.execute(DB.listChosenList(StudentID))
         results = """
     <style>
@@ -97,7 +106,7 @@ def printOwnCourse():
     </style>
     <p><a href="/">Back to Query Interface</a></p>
     """
-    results +=  f"<h1>Welcome, {username} </h1>"
+    results +=  f"<h1>Welcome, {studentName} </h1>"
     results +=  f"""<form method="post" action="/AddCourse" >
                         <button type="submit" name="courseID" value="0">去選課!</button>
                     </form>"""
@@ -219,10 +228,10 @@ def AddCourse():
             }
         </style>
         <p><a href="/">Back to Query Interface</a></p>"""
-    results +=  f"<h1>Welcome, {StudentID} </h1>"
+    results +=  f"<h1>Welcome, {studentIDToName(StudentID, conn)} </h1>"
     results +=   f"""<form method="post" action="" >
                         課程ID:<p><input type="text" name="courseID">
-                        <button type="submit" >選課</button>
+                        <button type="submit" >加入願望清單</button>
                     </form>
                 """
     results += f"<h2>願望清單</h>"
