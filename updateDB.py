@@ -28,7 +28,7 @@ def addUser(NID, UserName, UserPassword, Dept, Grade, conn):
 
 # tested: ABLE TO USE
 def listChosenListID(NID):
-    results = f"select * from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    results = f"select CourseID from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
     return results
 
 
@@ -36,9 +36,14 @@ def pyChosenList(NID, conn):
     cursor = conn.cursor()
     cursor.execute(listChosenListID(NID))
     finalList = []
+    '''
     for (CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave) in cursor.fetchall():
         temp = classroomAndCourseTime(CourseID, conn)
         finalList.append(CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave, temp)
+    '''
+    for (a,) in cursor.fetchall():
+        finalList.append(a)
+
     return finalList
 
 # tested: ABLE TO USE
