@@ -77,8 +77,10 @@ def autoChooseMustHaveList(NID, conn):
         conn.commit()
         cursor.execute(addChosen)
         conn.commit()
-  
-def isMustHaveCourse(Dept,CourseID, cursor):
+
+    '''
+def isMustHaveCourse(Dept,CourseID, conn):
+    cursor = conn.cursor()
     results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
     tempA = cursor.fetchall()
@@ -87,6 +89,7 @@ def isMustHaveCourse(Dept,CourseID, cursor):
     if (tempA[0] == True) and (tempA[1] == Dept) :
         return True
     return False
+    '''
 
 
 #tested: ABLE TO USE
@@ -122,21 +125,17 @@ def deleteCourse(NID, CourseID, conn):
     results = ""
     cursor = conn.cursor()
     cursor.execute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
-    pointOfCourse = cursor.fetchall()
-    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0][0]
+    pointOfCourse = cursor.fetchone()
+    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0]
     if pointOfresult < 9:
         results += """  <script>
-                            function A(){
-                                alert("\"不能退選\", 退選當前課程會低於學分下限!!")
-                            }
+                            alert("不能退選, 退選當前課程會低於學分下限!!")
                         </script>
                     """
         return results
-    if isMustHaveCourse(CourseID) == True:
+    if isMustHaveCourse(CourseID, conn) == True:
         results += """  <script>
-                            function B(){
-                                alert("你已退選您的\"必選課程\"!!")
-                            }
+                            alert("你已退選您的"必選課程"!!")
                         </script>
                    """
     results1 =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
@@ -187,14 +186,15 @@ def isExceedLimitOfStudent(CourseID, cursor):
 def ListChoosableCourse(NID, conn):
     #source: python_example.py
     #cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
-    currentTotalPointsOfStudent = currentPoint(NID,conn)
-    cursor.execute(f"SELECT CourseName, CourseID, Point FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen where NID = \'{NID}\');")
+    currentTotalPointsOfStudent = currentPoint(NID, conn)
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen where NID = \'{NID}\');")
     notChosenList = cursor.fetchall()
     results = []
-    for (CourseName, CourseID, Point) in notChosenList:
-        sum = currentTotalPointsOfStudent + Point
+    for (CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave) in notChosenList:
+        sum = currentTotalPointsOfStudent + Points
         if 9 <= sum and sum <= 30:
-            results.append((CourseName, CourseID, Point)) 
+            results.append((CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave)) 
     return results
 
 
@@ -217,12 +217,14 @@ def isGreaterThanPointLowerLimit(NID, cursor):
         return True
     return False
 
-def isMustHaveCourse(CourseID, cursor):
+def isMustHaveCourse(CourseID, conn):
+    cursor = conn.cursor()
     results =  f"SELECT MustHave FROM AllCourse WHERE CourseID = {CourseID}"
     #source: python_example.py
     cursor.execute(results)
     temp = cursor.fetchall()
-    if temp[0] == True:
+
+    if temp[0][0] == True:
         return True
     return False
 
@@ -325,7 +327,7 @@ def deleteFromWishList(NID, CourseID, conn):
     cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
     conn.commit()
     return True
-
+  
 
 def classroomAndCourseTime(CourseID, conn):
     cursor = conn.cursor()
@@ -363,3 +365,11 @@ def showLimit():
                     alert("提醒: 學分最高不能超過30，最低不能低於9")
                 }
             </script>"""
+
+
+def showName(NID, conn):
+    cursor = conn.cursor()
+    results = f"SELECT Username FROM Users WHERE NID = \'{NID}\';"
+    cursor.execute(results)
+    for (a,) in cursor.fetchall():
+        return a
