@@ -36,8 +36,14 @@ def pyChosenList(NID, conn):
     cursor = conn.cursor()
     cursor.execute(listChosenListID(NID))
     finalList = []
+    '''
+    for (CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave) in cursor.fetchall():
+        temp = classroomAndCourseTime(CourseID, conn)
+        finalList.append(CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave, temp)
+    '''
     for (a,) in cursor.fetchall():
         finalList.append(a)
+
     return finalList
 
 # tested: ABLE TO USE
@@ -97,7 +103,6 @@ TimeID in (select TimeID from CourseTime where CourseID in (SELECT CourseID FROM
     return True
     
 '''
-
 #not include time collision 未完成
 def chooseCourse(NID, CourseID):
     
@@ -280,21 +285,22 @@ def showWishList(NID):
 # tested: ABLE TO USE
 
 def chooseCourse(NID,conn):
-    if (timeCollision(NID, conn) == True):
-        return "衝堂"     #衝堂
-    
-    if (wishListPointAddChosenPoint(NID, conn) > 30):
-        return "超出學分上限"     #超出上限
-    
     wishList = f"select CourseID from WishList where NID = \'{NID}\';"
     cursor = conn.cursor()
     cursor.execute(wishList)
-    results = "成功!"
+    results = ""
     for (CourseID,) in cursor.fetchall():
         if (isExceedLimitOfStudent(CourseID, cursor) == True):
             #print(f"{CourseID} Exceed People Limit\n")
-            results += f", 超出人數上限：{CourseID}"
+            results += f"超出人數上限：{CourseID}\n"
             continue
+        if (wishListPointAddChosenPoint(NID, conn) > 30):
+            results += f"超出學分上限: {CourseID}\n"
+            continue
+        if (timeCollision(NID, conn) == True):
+            results += f"{CourseID} 與已選課程衝堂\n"
+            continue
+        results += f"{CourseID} 成功加選\n"
         cursor.execute(f"insert into Chosen values(\'{NID}\', {CourseID});")
         conn.commit()
         cursor.execute(f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};")
@@ -345,3 +351,16 @@ def personalCourseTime(NID, conn):
         for (b,) in cursor.fetchall():
             a[0] = b
     return idlist
+
+
+def showLimit():
+    return """<script>
+                function(){
+                    alert("提醒: 學分最高不能超過30，最低不能低於9")
+                }
+            </script>"""
+
+def classroomAndCourseTime(CourseID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT TimeID, Classroom FROM CourseTime WHERE CourseID = {CourseID}")
+    return cursor.fetchall()
