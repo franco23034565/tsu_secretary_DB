@@ -90,10 +90,11 @@ def isMustHaveCourse(Dept,CourseID, cursor):
 
 
 #tested: ABLE TO USE
-def timeCollision(NID,conn):
+def timeCollision(NID, CourseID, conn):
     cursor = conn.cursor()
-    exxe = f"""select count(*) from CourseTime where TimeID in (select TimeID from CourseTime where CourseID in (select CourseID from Chosen where NID = '{NID}')) and
-TimeID in (select TimeID from CourseTime where CourseID in (SELECT CourseID FROM WishList WHERE NID = '{NID}'));"""
+    exxe = f"select count(*) from CourseTime where TimeID in "
+    exxe += f"(select TimeID from CourseTime where CourseID in (select CourseID from Chosen where NID = \'{NID}\')) and "
+    exxe += f"TimeID in (select TimeID from CourseTime where CourseID = {CourseID});"
     cursor.execute(exxe)
     results = 0
     for (a,) in cursor.fetchall():
@@ -289,15 +290,15 @@ def chooseCourse(NID,conn):
     cursor = conn.cursor()
     cursor.execute(wishList)
     results = ""
+    if (wishListPointAddChosenPoint(NID, conn) > 30):
+        results += f"超出學分上限: {CourseID}\n"
+        return results
     for (CourseID,) in cursor.fetchall():
         if (isExceedLimitOfStudent(CourseID, cursor) == True):
             #print(f"{CourseID} Exceed People Limit\n")
             results += f"超出人數上限：{CourseID}\n"
             continue
-        if (wishListPointAddChosenPoint(NID, conn) > 30):
-            results += f"超出學分上限: {CourseID}\n"
-            continue
-        if (timeCollision(NID, conn) == True):
+        if (timeCollision(NID, CourseID, conn) == True):
             results += f"{CourseID} 與已選課程衝堂\n"
             continue
         results += f"{CourseID} 成功加選\n"
@@ -325,14 +326,17 @@ def deleteFromWishList(NID, CourseID, conn):
     conn.commit()
     return True
 
+
+def classroomAndCourseTime(CourseID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT TimeID, Classroom FROM CourseTime WHERE CourseID = {CourseID};")
+    return cursor.fetchall()
+
+
 #（星期幾）第？節，在哪裡\n
 def courseTimeString(CourseID, conn):
-    cursor = conn.cursor()
-    allResults = f"select TimeID, Classroom from CourseTime where CourseID = {CourseID};"
-    cursor.execute(allResults)
-    #return cursor.fetchall()
     finalResults = ""
-    for (a,b) in cursor.fetchall():
+    for (a,b) in classroomAndCourseTime(CourseID, conn):
         coursetime = TimeIDToTime(a)
         finalResults += f"（{coursetime[0]}）第{coursetime[1]}節，{b}\n"
     return finalResults
@@ -359,8 +363,3 @@ def showLimit():
                     alert("提醒: 學分最高不能超過30，最低不能低於9")
                 }
             </script>"""
-
-def classroomAndCourseTime(CourseID, conn):
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT TimeID, Classroom FROM CourseTime WHERE CourseID = {CourseID}")
-    return cursor.fetchall()
