@@ -121,9 +121,9 @@ def chooseCourse(NID, CourseID):
 def deleteCourse(NID, CourseID, conn):
     results = ""
     cursor = conn.cursor()
-    cursor.excute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
+    cursor.execute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
     pointOfCourse = cursor.fetchone()
-    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0];
+    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0]
     if pointOfresult < 9:
         results += """  <script>
                             function(){

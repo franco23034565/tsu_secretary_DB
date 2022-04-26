@@ -85,7 +85,7 @@ def printOwnCourse():
         if (Set=="2"):
             CourseID = request.form.get("courseID")
             results +=f"{CourseID}"
-            DB.deleteCourse(StudentID,CourseID,conn)
+            results += DB.deleteCourse(StudentID,CourseID,conn)
         results += """
     <style>
         table {
@@ -258,9 +258,8 @@ def AddCourse():
     results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th><th>取消關注</th>"
     results += "</tr>"
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
-        str(CourseID)
         results += "<tr>"
-        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
         results += f"""<td>
                             <form method="post" action="" >
                             <input type="hidden"  name="courseID" value={CourseID}>
