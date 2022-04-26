@@ -18,10 +18,13 @@ userGrade = 2
 #udb.addUser(NID, userName, userPasswd, userDept, userGrade, conn)
 #udb.autoChooseMustHaveList(NID, conn)
 #udb.deleteCourse(NID, 9487, conn)
-#udb.addInWishList(NID, 7495, conn)
+if (udb.addInWishList(NID, 3598, conn) == True):
+    print(udb.chooseCourse(NID,conn))
+else:
+    print("Fial")
 #print(udb.isUser(NID, "IWasTestins", conn))
 #cursor.execute()
 #print(udb.chooseCourse(NID, conn))
-print(udb.timeCollision(NID,770,conn))
+#print(udb.timeCollision(NID,770,conn))
 #print(udb.personalCourseTime(NID, conn))
 #print(udb.addInWishList(NID, 5477, conn))
