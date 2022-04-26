@@ -184,10 +184,10 @@ def isExceedLimitOfStudent(CourseID, cursor):
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 #results is tuple list
-def ListChoosableCourse(NID, cursor):
+def ListChoosableCourse(NID, conn):
     #source: python_example.py
-    cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
-    currentTotalPointsOfStudent = cursor.fetchall()
+    #cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
+    currentTotalPointsOfStudent = currentPoint(NID,conn)
     cursor.execute(f"SELECT CourseName, CourseID, Point FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen where NID = \'{NID}\');")
     notChosenList = cursor.fetchall()
     results = []
@@ -291,17 +291,17 @@ def chooseCourse(NID,conn):
     cursor.execute(wishList)
     results = ""
     if (wishListPointAddChosenPoint(NID, conn) > 30):
-        results += f"超出學分上限: {CourseID}\n"
+        results += f"超出學分上限,"
         return results
     for (CourseID,) in cursor.fetchall():
         if (isExceedLimitOfStudent(CourseID, cursor) == True):
             #print(f"{CourseID} Exceed People Limit\n")
-            results += f"超出人數上限：{CourseID}\n"
+            results += f"超出人數上限：{CourseID},"
             continue
         if (timeCollision(NID, CourseID, conn) == True):
-            results += f"{CourseID} 與已選課程衝堂\n"
+            results += f"{CourseID} 與已選課程衝堂,"
             continue
-        results += f"{CourseID} 成功加選\n"
+        results += f"{CourseID} 成功加選,"
         cursor.execute(f"insert into Chosen values(\'{NID}\', {CourseID});")
         conn.commit()
         cursor.execute(f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};")
