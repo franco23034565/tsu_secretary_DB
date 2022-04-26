@@ -216,6 +216,8 @@ def AddUsers():
     UserName = request.form.get("name")
     Dept = request.form.get("dept")
     Grade = request.form.get("grade")
+    if (isInt(Grade) == False):
+        return "年級必須為數字" + index2()
     DB.addUser(NID, UserName, UserPassword, Dept, Grade, conn)
     DB.autoChooseMustHaveList(NID,conn)
     results = "<h1>新增成功，已將必選課程列入課表</h1>"
