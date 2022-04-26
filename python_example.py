@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # coding=utf-8
 # -*- coding: UTF-8 -*-
+#set==0無狀態 set==1新增 set==2刪除 set==3 送出跳轉
 from unittest import result
 from flask import Flask, request
 import MySQLdb
@@ -10,14 +11,6 @@ conn = MySQLdb.connect(host="127.0.0.1",
                            passwd="test1234",
                            db="testdb")
 cursor = conn.cursor()
-
-def studentIDToName(NID,conn):
-    cursor = conn.cursor()
-    cursor.execute(f"select UserName from Users where NID = \'{NID}\';")
-    studentName = ""
-    for (a,) in cursor.fetchall():
-        studentName = a
-    return studentName
 
 app = Flask(__name__)
 '''
@@ -61,7 +54,7 @@ def index():
     <form method="post" action="/printOwnCourse">
         <p>登入帳號：</p><input type="text" name="user">
         <p>密碼：</p><input type="password" name="passwd">
-        <p><button type="submit" value="*">送出</button>
+        <p><button type="submit" name="set"value="1">送出</button>
     </from>
     """
     return form
@@ -69,6 +62,7 @@ def index():
 @app.route('/printOwnCourse', methods=['POST'])
 def printOwnCourse():
     truth = {0:"否", 1:"是"}
+    results=""
     username = request.form.get("user")
     passwd = request.form.get("passwd")
     if username == "" or passwd == "":
@@ -85,10 +79,14 @@ def printOwnCourse():
         return results
     else:
         global StudentID
-        StudentID = username
-        studentName = studentIDToName(username, conn)
+        StudentID= username
         cursor.execute(DB.listChosenList(StudentID))
-        results = """
+        Set = request.form.get("set")
+        if (Set=="2"):
+            CourseID = request.form.get("courseID")
+            results +=f"{CourseID}"
+            DB.deleteCourse(StudentID,CourseID,conn)
+        results += """
     <style>
         table {
         font-family: arial, sans-serif;
@@ -106,9 +104,9 @@ def printOwnCourse():
     </style>
     <p><a href="/">Back to Query Interface</a></p>
     """
-    results +=  f"<h1>Welcome, {studentName} </h1>"
+    results +=  f"<h1>Welcome, {username} </h1>"
     results +=  f"""<form method="post" action="/AddCourse" >
-                        <button type="submit" name="courseID" value="0">去選課!</button>
+                        <button type="submit" name="set" value="0">去選課!</button>
                     </form>"""
                 
     results += f"<h2>已選課表</h2>"
@@ -116,12 +114,22 @@ def printOwnCourse():
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
     results += "<tr>"
-    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th>"
+    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th><th>退選</th>"
     results += "</tr>"
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
+        #stringCourse = str(CourseID)
         results += "<tr>"
-        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
-        results += "</tr>"
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
+        results += f"""<td>
+                            <form method="post" action="" >
+                            <input type="hidden"  name="courseID" value={CourseID}>
+                            <input type="hidden"  name="user" value={username}>
+                            <input type="hidden"  name="passwd" value={passwd}>
+                            <button type="submit" name="set" value="2" >取消</button>
+                            </form>
+                        </td>
+                    """
+        results += "</tr>"            
     results += "</table>"
     return results
 
@@ -164,11 +172,11 @@ def printAllCourse():
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
     results += "<tr>"
-    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th> <th>時間地點</th>"
+    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th>"
     results += "</tr>"
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
         results += "<tr>"
-        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav], DB.courseTimeString(CourseID,conn))
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
         results += "</tr>"
     results += "</table>"
     results += "<h1>Welcome</h1>"
@@ -204,14 +212,22 @@ def AddUsers():
 
 @app.route('/AddCourse',methods=['POST'])
 def AddCourse():
+    results =""
     truth = {0:"否", 1:"是"}
-
-    CourseID = request.form.get("courseID")
-    if not(CourseID=="0"):
+    Set = request.form.get("set")
+    if (Set=="1"):
+        CourseID = request.form.get("courseID")
         DB.addInWishList(StudentID,CourseID,conn)
-
+    if (Set=="2"):#deleteWishList
+        CourseID = request.form.get("courseID")
+        #results +=f"""{CourseID}"""
+        DB.deleteFromWishList(StudentID,CourseID,conn)
+    if (Set=="3"):
+        #results += Set
+        print(DB.chooseCourse(StudentID,conn))   
+        
     cursor.execute(DB.showWishList(StudentID))
-    results = """
+    results += """
         <style>
             table {
                 font-family: arial, sans-serif;
@@ -228,10 +244,10 @@ def AddCourse():
             }
         </style>
         <p><a href="/">Back to Query Interface</a></p>"""
-    results +=  f"<h1>Welcome, {studentIDToName(StudentID, conn)} </h1>"
+    results +=  f"<h1>Welcome, {StudentID} </h1>"
     results +=   f"""<form method="post" action="" >
                         課程ID:<p><input type="text" name="courseID">
-                        <button type="submit" >加入願望清單</button>
+                        <button type="submit" name="set" value="1">選課</button>
                     </form>
                 """
     results += f"<h2>願望清單</h>"
@@ -239,34 +255,23 @@ def AddCourse():
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
     results += "<tr>"
-    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th>"
+    results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th><th>取消關注</th>"
     results += "</tr>"
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
+        str(CourseID)
         results += "<tr>"
         results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
+        results += f"""<td>
+                            <form method="post" action="" >
+                            <input type="hidden"  name="courseID" value={CourseID}>
+                            <button type="submit" name="set" value="2" >取消</button>
+                            </form>
+                        </td>
+                    """
         results += "</tr>"
     results += "</table>"
-    return results
-
-@app.route('/index3', methods=['POST'])
-def index3():
-    CourseID=request.form.get("courseID")
-    DB.addInWishList(StudentID,CourseID,conn)
-    results = """
-        <style>
-            table {
-                font-family: arial, sans-serif;
-                border-collapse: collapse;
-                width: 100%;
-            }
-            td, th {
-                border: 1px solid #dddddd;
-                text-align: left;
-                padding: 8px;
-            }
-            tr:nth-child(even) {
-                background-color: #dddddd;
-            }
-        </style>
-        <p><a href="/">Back to Query Interface</a></p>"""
+    results += f"""<form method="post" action="" >
+                        <button type="submit" name="set" value="3">加入已選課表</button>
+                    </form>
+                """
     return results
