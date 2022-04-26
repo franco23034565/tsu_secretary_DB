@@ -121,7 +121,7 @@ def printOwnCourse():
         results += "<tr>"
         results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav])
         results += f"""<td>
-                            <form method="post" action="" >
+                            <form method="post" action="/" >
                             <input type="hidden"  name="courseID" value={CourseID}>
                             <input type="hidden"  name="user" value={username}>
                             <input type="hidden"  name="passwd" value={passwd}>
@@ -131,7 +131,7 @@ def printOwnCourse():
                     """
         results += "</tr>"            
     results += "</table>"
-    #results += """<p><a href="/personalTime">Personal CourseTime</a></p>"""
+    results += """<p><a href="/personalTime">Personal CourseTime</a></p>"""
     return results
 
 

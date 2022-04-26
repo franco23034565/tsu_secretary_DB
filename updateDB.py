@@ -122,11 +122,11 @@ def deleteCourse(NID, CourseID, conn):
     results = ""
     cursor = conn.cursor()
     cursor.execute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
-    pointOfCourse = cursor.fetchone()
-    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0]
+    pointOfCourse = cursor.fetchall()
+    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0][0]
     if pointOfresult < 9:
         results += """  <script>
-                            function(){
+                            function A(){
                                 alert("\"不能退選\", 退選當前課程會低於學分下限!!")
                             }
                         </script>
@@ -134,7 +134,7 @@ def deleteCourse(NID, CourseID, conn):
         return results
     if isMustHaveCourse(CourseID) == True:
         results += """  <script>
-                            function alert(){
+                            function B(){
                                 alert("你已退選您的\"必選課程\"!!")
                             }
                         </script>
