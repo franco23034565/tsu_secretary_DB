@@ -77,8 +77,9 @@ def autoChooseMustHaveList(NID, conn):
         conn.commit()
         cursor.execute(addChosen)
         conn.commit()
-  
-def isMustHaveCourse(Dept,CourseID, cursor):
+    '''
+def isMustHaveCourse(Dept,CourseID, conn):
+    cursor = conn.cursor()
     results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID};"
     cursor.execute(results)
     tempA = cursor.fetchall()
@@ -87,6 +88,7 @@ def isMustHaveCourse(Dept,CourseID, cursor):
     if (tempA[0] == True) and (tempA[1] == Dept) :
         return True
     return False
+    '''
 
 
 #tested: ABLE TO USE
@@ -121,22 +123,18 @@ def chooseCourse(NID, CourseID):
 def deleteCourse(NID, CourseID, conn):
     results = ""
     cursor = conn.cursor()
-    cursor.excute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
+    cursor.execute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
     pointOfCourse = cursor.fetchone()
-    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0];
+    pointOfresult = currentPoint(NID, conn) - pointOfCourse[0]
     if pointOfresult < 9:
         results += """  <script>
-                            function(){
-                                alert("\"不能退選\", 退選當前課程會低於學分下限!!")
-                            }
+                            alert("不能退選, 退選當前課程會低於學分下限!!")
                         </script>
                     """
         return results
-    if isMustHaveCourse(CourseID) == True:
+    if isMustHaveCourse(CourseID, conn) == True:
         results += """  <script>
-                            function alert(){
-                                alert("你已退選您的\"必選課程\"!!")
-                            }
+                            alert("你已退選您的"必選課程"!!")
                         </script>
                    """
     results1 =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
@@ -184,17 +182,18 @@ def isExceedLimitOfStudent(CourseID, cursor):
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 #results is tuple list
-def ListChoosableCourse(NID, cursor):
+def ListChoosableCourse(NID, conn):
     #source: python_example.py
-    cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
-    currentTotalPointsOfStudent = cursor.fetchall()
-    cursor.execute(f"SELECT CourseName, CourseID, Point FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen where NID = \'{NID}\');")
+    #cursor.execute(f"SELECT sum(Points) FROM AllCourse WHERE CourseID in (SELECT CourseID FROM Chosen WHERE NID = \'{NID}\');")
+    currentTotalPointsOfStudent = currentPoint(NID, conn)
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM AllCourse WHERE CourseID NOT IN (SELECT CourseID FROM Chosen where NID = \'{NID}\');")
     notChosenList = cursor.fetchall()
     results = []
-    for (CourseName, CourseID, Point) in notChosenList:
-        sum = currentTotalPointsOfStudent + Point
+    for (CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave) in notChosenList:
+        sum = currentTotalPointsOfStudent + Points
         if 9 <= sum and sum <= 30:
-            results.append((CourseName, CourseID, Point)) 
+            results.append((CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave)) 
     return results
 
 
@@ -217,12 +216,13 @@ def isGreaterThanPointLowerLimit(NID, cursor):
         return True
     return False
 
-def isMustHaveCourse(CourseID, cursor):
+def isMustHaveCourse(CourseID, conn):
+    cursor = conn.cursor()
     results =  f"SELECT MustHave FROM AllCourse WHERE CourseID = {CourseID}"
     #source: python_example.py
     cursor.execute(results)
     temp = cursor.fetchall()
-    if temp[0] == True:
+    if temp[0][0] == True:
         return True
     return False
 
@@ -291,17 +291,17 @@ def chooseCourse(NID,conn):
     cursor.execute(wishList)
     results = ""
     if (wishListPointAddChosenPoint(NID, conn) > 30):
-        results += f"超出學分上限: {CourseID}\n"
+        results += f"超出學分上限,"
         return results
     for (CourseID,) in cursor.fetchall():
         if (isExceedLimitOfStudent(CourseID, cursor) == True):
             #print(f"{CourseID} Exceed People Limit\n")
-            results += f"超出人數上限：{CourseID}\n"
+            results += f"超出人數上限：{CourseID},"
             continue
         if (timeCollision(NID, CourseID, conn) == True):
-            results += f"{CourseID} 與已選課程衝堂\n"
+            results += f"{CourseID} 與已選課程衝堂,"
             continue
-        results += f"{CourseID} 成功加選\n"
+        results += f"{CourseID} 成功加選,"
         cursor.execute(f"insert into Chosen values(\'{NID}\', {CourseID});")
         conn.commit()
         cursor.execute(f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};")

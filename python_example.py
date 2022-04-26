@@ -85,8 +85,8 @@ def printOwnCourse():
         Set = request.form.get("set")
         if (Set=="2"):
             CourseID = request.form.get("courseID")
-            results +=f"{CourseID}"
-            DB.deleteCourse(StudentID,CourseID,conn)
+            #results +=f"{CourseID}"
+            results += DB.deleteCourse(StudentID,CourseID,conn)
         results += """
     <style>
         table {
@@ -226,12 +226,14 @@ def AddCourse():
     if (Set=="2"):#deleteWishList
         CourseID = request.form.get("courseID")
         #results +=f"""{CourseID}"""
-        DB.deleteFromWishList(StudentID,CourseID,conn)
+        results += DB.deleteFromWishList(StudentID,CourseID,conn)
     if (Set=="3"):
         #results += Set
-        results += DB.chooseCourse(StudentID,conn) 
-        
-        
+        #results += DB.chooseCourse(StudentID,conn)
+        results +=  f"""<script>
+                            alert("{DB.chooseCourse(StudentID,conn)}")
+                        </script>
+                    """
     cursor.execute(DB.showWishList(StudentID))
     results += """
         <style>
@@ -256,13 +258,14 @@ def AddCourse():
                         <button type="submit" name="set" value="1">加入願望清單</button>
                     </form>
                 """
-    results += f"<h2>願望清單</h>"
+    results += f"<h2>願望清單</h2>"
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
     results += "<tr>"
     results += "<th>課程ID</th> <th>課程名稱</th> <th>科系</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th> <th>時間地點</th> <th>取消關注</th>"
     results += "</tr>"
+    
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
         str(CourseID)
         results += "<tr>"
@@ -277,9 +280,23 @@ def AddCourse():
         results += "</tr>"
     results += "</table>"
     results += f"""<form method="post" action="" >
-                        <button type="submit" name="set" value="3">願望清單加入已選課表</button>
+                        <button type="submit" name="set" value="3">將願望清單加入已選課表</button>
                     </form>
                 """
+
+    results += "<table>"
+    # 取得並列出所有查詢結果
+    #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
+    results += "<tr>"
+    results += "<th>課程ID</th> <th>課程名稱</th> <th>學分</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th> <th>時間地點</th>"
+    results += "</tr>"
+    choosableList = DB.ListChoosableCourse(StudentID, conn)
+    for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in choosableList:
+        str(CourseID)
+        results += "<tr>"
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav],DB.courseTimeString(CourseID,conn))
+        results += "</tr>"
+    results += "</table>"
     return results
 
 @app.route('/personalTime', methods=['POST','GET'])
