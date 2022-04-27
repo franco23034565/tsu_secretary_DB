@@ -60,8 +60,13 @@ def pyWishList(NID, conn):
 
 # tested: ABLE TO USE
 #list all Courses that a user must have
-def mustHaveList(NID):
-    return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
+def mustHaveList(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"select Grade from Users where NID = \'{NID}\';")
+    grade = 0
+    for (a,) in cursor.fetchall():
+        grade = a
+    return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\') and Grade = {grade};"
 
 
 '''
@@ -182,7 +187,7 @@ def isExceedLimitOfStudent(CourseID, cursor):
 #automate the "choose MustHave" process
 def autoChooseMustHaveList(NID, conn):
     cursor = conn.cursor()
-    cursor.execute(mustHaveList(NID))
+    cursor.execute(mustHaveList(NID,conn))
     for (CourseID,) in cursor.fetchall():
         if (isExceedLimitOfStudent(CourseID,cursor) == True):
             cursor.execute(f"insert into WishList values(\'{NID}\', {CourseID});")
@@ -253,6 +258,8 @@ def currentPoint(NID, conn):
     CurrentPoints = 0
     for (a,) in cursor.fetchall():
         CurrentPoints = a
+        if CurrentPoints == None:
+            CurrentPoints = 0
     return CurrentPoints
 
 #return [星期幾(string), 第幾節課(int)]
@@ -290,6 +297,8 @@ def wishListPoint(NID, conn):
     CurrentPoints = 0
     for (a,) in cursor.fetchall():
         CurrentPoints = a
+        if CurrentPoints == None:
+            CurrentPoints = 0
     return CurrentPoints
 
 # tested: ABLE TO USE
