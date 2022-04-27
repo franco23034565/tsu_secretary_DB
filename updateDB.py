@@ -334,6 +334,8 @@ def chooseCourse(NID,conn):
         conn.commit()
         cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
         conn.commit()
+    if results == "":
+        results = "願望清單為空"
     return results
 
 
