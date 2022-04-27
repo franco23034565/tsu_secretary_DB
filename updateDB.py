@@ -63,22 +63,8 @@ def pyWishList(NID, conn):
 def mustHaveList(NID):
     return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
 
-# tested: ABLE TO USE
-#automate the "choose MustHave" process
-def autoChooseMustHaveList(NID, conn):
-    cursor = conn.cursor()
-    cursor.execute(mustHaveList(NID))
-    for (CourseID,) in cursor.fetchall():
-        addAllCoursePeople = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
-        addChosen = f"insert into Chosen values(\'{NID}\', {CourseID});"
-        #print(addAllCoursePeople)
-        #print(addChosen)
-        cursor.execute(addAllCoursePeople)
-        conn.commit()
-        cursor.execute(addChosen)
-        conn.commit()
 
-    '''
+'''
 def isMustHaveCourse(Dept,CourseID, conn):
     cursor = conn.cursor()
     results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID};"
@@ -89,7 +75,7 @@ def isMustHaveCourse(Dept,CourseID, conn):
     if (tempA[0] == True) and (tempA[1] == Dept) :
         return True
     return False
-    '''
+'''
 
 
 #tested: ABLE TO USE
@@ -190,6 +176,26 @@ def isExceedLimitOfStudent(CourseID, cursor):
     tempA = cursor.fetchall()
     #return tempA
     return tempA[0][0]>=tempA[0][1]#true or false
+
+
+# tested: ABLE TO USE
+#automate the "choose MustHave" process
+def autoChooseMustHaveList(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(mustHaveList(NID))
+    for (CourseID,) in cursor.fetchall():
+        if (isExceedLimitOfStudent(CourseID,cursor) == True):
+            cursor.execute(f"insert into WishList values(\'{NID}\', {CourseID});")
+            conn.commit()
+            continue
+        addAllCoursePeople = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
+        addChosen = f"insert into Chosen values(\'{NID}\', {CourseID});"
+        #print(addAllCoursePeople)
+        #print(addChosen)
+        cursor.execute(addAllCoursePeople)
+        conn.commit()
+        cursor.execute(addChosen)
+        conn.commit()
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 #results is tuple list
