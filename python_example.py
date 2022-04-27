@@ -218,8 +218,9 @@ def AddUsers():
     Dept = request.form.get("dept")
     Grade = request.form.get("grade")
     if (isInt(Grade) == False):
-        return "年級必須為數字" + index2()
-    DB.addUser(NID, UserName, UserPassword, Dept, Grade, conn)
+        return """<script>alert("年級必須為數字")</script>""" + index2()
+    if (DB.addUser(NID, UserName, UserPassword, Dept, Grade, conn) == False):
+        return """<script>alert("用戶已存在")</script>""" + index2()
     DB.autoChooseMustHaveList(NID,conn)
     results = "<h1>新增成功，已將必選課程列入課表</h1>"
     results += """<p><a href="/">Back to Query Interface</a></p>"""
@@ -233,7 +234,7 @@ def AddCourse():
     if (Set=="1"):
         CourseID = request.form.get("courseID")
         if (isInt(CourseID) == False):
-            results += """<script>alert("請輸入課程ID")</script>"""
+            results += """<script>alert("請輸入課程ID(數字)")</script>"""
         elif (DB.addInWishList(StudentID,int(CourseID),conn) == False):
             results += """<script>alert("無此課程或該課程已選")</script>"""
         else:
@@ -276,6 +277,7 @@ def AddCourse():
                         <button type="submit" name="set" value="1">加入願望清單</button>
                     </form>
                 """
+    results += """<p><font color="#ff0000">提示：修習學分數不可高於30分或低於9分</font></p>"""
     results += f"<h2>願望清單 | 願望清單學分數: {DB.wishListPoint(StudentID, conn)}</h2>"
     results += "<table>"
     # 取得並列出所有查詢結果
