@@ -136,12 +136,19 @@ def deleteCourse(NID, CourseID, conn):
     conn.commit()
     return results
 
-def SameNameCourseCount(NID, CourseID):
-    results  = f"select count(*) as CourseCount from AllCourse"
-    results += f"where CourseName in (select CourseName from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\'))" #在已選課表中的所有課名
-    results += f" and "
-    results += f"CourseID <> {CourseID};"
-    return results
+def isSameNameCourse(NID, CourseID, conn):
+    chosenCourseName = f"select CourseName from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    cursor = conn.cursor()
+    cursor.execute(chosenCourseName)
+    chosenCourseNameList = cursor.fetchall()
+    cursor.execute(f"select CourseName from AllCourse where CourseID = {CourseID};")
+    thisCourseName = cursor.fetchall()[0][0]
+    for (coursename,) in chosenCourseNameList:
+        if (coursename == None):
+            return False
+        if (coursename == thisCourseName):
+            return True
+    return False
 
 def isCourse(CourseID, conn):
     cursor = conn.cursor()
@@ -327,6 +334,9 @@ def chooseCourse(NID,conn):
         if (timeCollision(NID, CourseID, conn) == True):
             results += f"{CourseID} 與已選課程衝堂,"
             continue
+        if (isSameNameCourse(NID, CourseID, conn) == True):
+            results += f"{CourseID} 與已選課程同名"
+            continue
         results += f"{CourseID} 成功加選,"
         cursor.execute(f"insert into Chosen values(\'{NID}\', {CourseID});")
         conn.commit()
@@ -334,6 +344,8 @@ def chooseCourse(NID,conn):
         conn.commit()
         cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
         conn.commit()
+    if results == "":
+        results = "願望清單為空"
     return results
 
 
