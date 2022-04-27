@@ -48,7 +48,6 @@ app = Flask(__name__)
 
 
 @app.route('/')
-
 def index():
 
     form = f"""
@@ -322,7 +321,7 @@ def AddCourse():
     results += "</table>"
     return results
 
-@app.route('/personalTime', methods=['POST','GET'])
+@app.route('/personalTime', methods=['POST'])
 def pCourseTime():
     personalList = DB.personalCourseTime(StudentID, conn)
     results = """

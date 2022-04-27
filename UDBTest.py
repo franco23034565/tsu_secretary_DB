@@ -23,7 +23,7 @@ userGrade = 2
 #udb.addUser(NID, userName, userPasswd, userDept, userGrade, conn)
 #udb.autoChooseMustHaveList(NID, conn)
 #udb.deleteCourse(NID, 9487, conn)
-if (udb.addInWishList(NID,770,conn) == True):
+if (udb.isSameNameCourse(NID, 770, conn) == True):
     print("aaa")
 else:
     print("bbb")
