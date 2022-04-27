@@ -233,18 +233,18 @@ def AddCourse():
     if (Set=="1"):
         CourseID = request.form.get("courseID")
         if (isInt(CourseID) == False):
-            results += "請輸入課程ID"
+            results += """<script>alert("請輸入課程ID")</script>"""
         elif (DB.addInWishList(StudentID,int(CourseID),conn) == False):
-            results += "無此課程或該課程已選"
+            results += """<script>alert("無此課程或該課程已選")</script>"""
         else:
-            results += "成功加入願望清單"
+            results += """<script>alert("成功加入願望清單")</script>"""
     if (Set=="2"):#deleteWishList
         CourseID = request.form.get("courseID")
         #results +=f"""{CourseID}"""
         if (DB.deleteFromWishList(StudentID,CourseID,conn) == True):
-            results += "退出願望清單成功"
+            results += """<script>alert("退出願望清單成功")</script>"""
         else:
-            results += "退出失敗"
+            results += """<script>alert("退出失敗")</script>"""
     if (Set=="3"):
         #results += Set
         #results += DB.chooseCourse(StudentID,conn)
