@@ -240,7 +240,10 @@ def AddCourse():
     if (Set=="2"):#deleteWishList
         CourseID = request.form.get("courseID")
         #results +=f"""{CourseID}"""
-        results += DB.deleteFromWishList(StudentID,CourseID,conn)
+        if (DB.deleteFromWishList(StudentID,CourseID,conn) == True):
+            results += "退出願望清單成功"
+        else:
+            results += "退出失敗"
     if (Set=="3"):
         #results += Set
         #results += DB.chooseCourse(StudentID,conn)
