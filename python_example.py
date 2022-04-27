@@ -116,6 +116,7 @@ def printOwnCourse():
                     </form>"""
                 
     results += f"<h2>已選課表 當前學分: {DB.currentPoint(StudentID, conn)}</h2>"
+    results += """<p><font color="#ff0000">提示：若該課程是你的必修課程，退選按鈕將是紅色</font></p>"""
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
@@ -131,7 +132,12 @@ def printOwnCourse():
                             <input type="hidden"  name="courseID" value={CourseID}>
                             <input type="hidden"  name="user" value={username}>
                             <input type="hidden"  name="passwd" value={passwd}>
-                            <button type="submit" name="set" value="2" >退選</button>
+                            <button type="submit" name="set" value="2">"""
+        if (DB.isMustHaveCourse(StudentID, CourseID, conn) == True):
+            results += """<font color="#ff0000">退選</font>"""
+        else:
+            results += """退選"""
+        results +=  """</button>
                             </form>
                         </td>
                     """

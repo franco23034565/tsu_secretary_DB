@@ -114,6 +114,12 @@ def chooseCourse(NID, CourseID):
 def deleteCourse(NID, CourseID, conn):
     results = ""
     cursor = conn.cursor()
+    if CourseIDIsChosenByNID(NID, CourseID, conn) == False:
+        results += f"""  <script>
+                            alert("你已經退選過 {CourseID} 了!!")
+                        </script>
+                    """
+        return results
     cursor.execute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
     pointOfCourse = cursor.fetchone()
     pointOfresult = currentPoint(NID, conn) - pointOfCourse[0]
@@ -410,6 +416,13 @@ def showLimit():
                 }
             </script>"""
 
+def CourseIDIsChosenByNID(NID, CourseID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT count(*) FROM Chosen WHERE NID = \'{NID}\' AND CourseID = {CourseID};")
+    temp = cursor.fetchall()
+    if temp[0][0] == 0:
+        return False
+    return True
 
 def showName(NID, conn):
     cursor = conn.cursor()
