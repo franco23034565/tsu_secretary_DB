@@ -233,18 +233,18 @@ def AddCourse():
     if (Set=="1"):
         CourseID = request.form.get("courseID")
         if (isInt(CourseID) == False):
-            results += """<script>alert("請輸入課程ID")</script>"""
+            results += "請輸入課程ID"
         elif (DB.addInWishList(StudentID,int(CourseID),conn) == False):
-            results += """<script>alert("無此課程或該課程已選")</script>"""
+            results += "無此課程或該課程已選"
         else:
-            results += """<script>alert("成功加入願望清單")</script>"""
+            results += "成功加入願望清單"
     if (Set=="2"):#deleteWishList
         CourseID = request.form.get("courseID")
         #results +=f"""{CourseID}"""
         if (DB.deleteFromWishList(StudentID,CourseID,conn) == True):
-            results += """<script>alert("退出願望清單成功")</script>"""
+            results += "退出願望清單成功"
         else:
-            results += """<script>alert("退出失敗")</script>"""
+            results += "退出失敗"
     if (Set=="3"):
         #results += Set
         #results += DB.chooseCourse(StudentID,conn)
@@ -285,7 +285,9 @@ def AddCourse():
     results += "</tr>"
     
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
+        str(CourseID)
         results += "<tr>"
+
         results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav],DB.courseTimeString(CourseID,conn))
         results += f"""<td>
                             <form method="post" action="" >
@@ -304,6 +306,7 @@ def AddCourse():
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
+
     results += "<h2>可選課表</h2>"
     results += "<tr>"
     results += "<th>課程ID</th> <th>課程名稱</th> <th>學分</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th> <th>時間地點</th>"
