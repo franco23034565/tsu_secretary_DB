@@ -114,6 +114,12 @@ def chooseCourse(NID, CourseID):
 def deleteCourse(NID, CourseID, conn):
     results = ""
     cursor = conn.cursor()
+    if CourseIDIsChosenByNID(NID, CourseID, conn) == False:
+        results += f"""  <script>
+                            alert("退選失敗, 你未曾加選過 {CourseID} !!")
+                        </script>
+                    """
+        return results
     cursor.execute(f"SELECT Points FROM AllCourse WHERE CourseID = {CourseID}")
     pointOfCourse = cursor.fetchone()
     pointOfresult = currentPoint(NID, conn) - pointOfCourse[0]
@@ -123,25 +129,37 @@ def deleteCourse(NID, CourseID, conn):
                         </script>
                     """
         return results
-    if isMustHaveCourse(CourseID, conn) == True:
-        results += """  <script>
-                            alert("你已退選您的"必選課程"!!")
-                        </script>
-                   """
     results1 =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
     cursor.execute(results1)
     conn.commit()
     results2 = f"update AllCourse set HowManyPeople = HowManyPeople - 1 where CourseID = {CourseID};"
     cursor.execute(results2)
     conn.commit()
+    if isMustHaveCourse(NID, CourseID, conn) == True:
+        results += """  <script>
+                            alert("你已退選您的 必選課程 !!")
+                        </script>
+                   """
+        return results
+    results +=  """ <script>
+                        alert("你已退選成功!!")
+                    </script>
+                """
     return results
 
-def SameNameCourseCount(NID, CourseID):
-    results  = f"select count(*) as CourseCount from AllCourse"
-    results += f"where CourseName in (select CourseName from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\'))" #在已選課表中的所有課名
-    results += f" and "
-    results += f"CourseID <> {CourseID};"
-    return results
+def isSameNameCourse(NID, CourseID, conn):
+    chosenCourseName = f"select CourseName from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');"
+    cursor = conn.cursor()
+    cursor.execute(chosenCourseName)
+    chosenCourseNameList = cursor.fetchall()
+    cursor.execute(f"select CourseName from AllCourse where CourseID = {CourseID};")
+    thisCourseName = cursor.fetchall()[0][0]
+    for (coursename,) in chosenCourseNameList:
+        if (coursename == None):
+            return False
+        if (coursename == thisCourseName):
+            return True
+    return False
 
 def isCourse(CourseID, conn):
     cursor = conn.cursor()
@@ -213,7 +231,7 @@ def ListChoosableCourse(NID, conn):
     results = []
     for (CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave) in notChosenList:
         sum = currentTotalPointsOfStudent + Points
-        if 9 <= sum and sum <= 30:
+        if (9 <= sum and sum <= 30) and (isExceedLimitOfStudent(CourseID, cursor) == False):
             results.append((CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave)) 
     return results
 
@@ -237,15 +255,18 @@ def isGreaterThanPointLowerLimit(NID, cursor):
         return True
     return False
 
-def isMustHaveCourse(CourseID, conn):
+def isMustHaveCourse(NID, CourseID, conn):
     cursor = conn.cursor()
-    results =  f"SELECT MustHave FROM AllCourse WHERE CourseID = {CourseID}"
+    results =  f"SELECT Dept, Grade, MustHave FROM AllCourse WHERE CourseID = {CourseID};"
+    results2 = f"select Dept, Grade from Users where NID = \'{NID}\';"
     #source: python_example.py
     cursor.execute(results)
     temp = cursor.fetchall()
-
-    if temp[0][0] == True:
-        return True
+    cursor.execute(results2)
+    temp2 = cursor.fetchall()
+    for (dept, grade, musthave) in temp:
+        if (dept == temp2[0][0]) and (grade == temp2[0][1]) and (musthave == 1):
+            return True
     return False
 
 # tested: ABLE TO USE
@@ -327,6 +348,9 @@ def chooseCourse(NID,conn):
         if (timeCollision(NID, CourseID, conn) == True):
             results += f"{CourseID} 與已選課程衝堂,"
             continue
+        if (isSameNameCourse(NID, CourseID, conn) == True):
+            results += f"{CourseID} 與已選課程同名"
+            continue
         results += f"{CourseID} 成功加選,"
         cursor.execute(f"insert into Chosen values(\'{NID}\', {CourseID});")
         conn.commit()
@@ -334,6 +358,8 @@ def chooseCourse(NID,conn):
         conn.commit()
         cursor.execute(f"delete from WishList where CourseID = {CourseID} and NID = \'{NID}\';")
         conn.commit()
+    if results == "":
+        results = "願望清單為空"
     return results
 
 
@@ -383,12 +409,13 @@ def personalCourseTime(NID, conn):
     return idlist
 
 
-def showLimit():
-    return """<script>
-                function(){
-                    alert("提醒: 學分最高不能超過30，最低不能低於9")
-                }
-            </script>"""
+def CourseIDIsChosenByNID(NID, CourseID, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM Chosen WHERE NID = {NID} AND CourseID = {CourseID}")
+    temp = cursor.fetchone()
+    if temp[0] == None:
+        return False
+    return True
 
 
 def showName(NID, conn):
