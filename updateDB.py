@@ -123,17 +123,22 @@ def deleteCourse(NID, CourseID, conn):
                         </script>
                     """
         return results
-    if isMustHaveCourse(CourseID, conn) == True:
-        results += """  <script>
-                            alert("你已退選您的"必選課程"!!")
-                        </script>
-                   """
     results1 =  f"delete from Chosen where CourseID = {CourseID} and NID = \'{NID}\';\n"
     cursor.execute(results1)
     conn.commit()
     results2 = f"update AllCourse set HowManyPeople = HowManyPeople - 1 where CourseID = {CourseID};"
     cursor.execute(results2)
     conn.commit()
+    if isMustHaveCourse(NID, CourseID, conn) == True:
+        results += """  <script>
+                            alert("你已退選您的 必選課程 !!")
+                        </script>
+                   """
+        return results
+    results +=  """ <script>
+                        alert("你已退選成功!!")
+                    </script>
+                """
     return results
 
 def isSameNameCourse(NID, CourseID, conn):
@@ -220,7 +225,7 @@ def ListChoosableCourse(NID, conn):
     results = []
     for (CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave) in notChosenList:
         sum = currentTotalPointsOfStudent + Points
-        if 9 <= sum and sum <= 30:
+        if (9 <= sum and sum <= 30) and (isExceedLimitOfStudent(CourseID, cursor) == False):
             results.append((CourseID, CourseName, Dept, HowManyPeople, PeopleLimit, Points, Teacher, Grade, MustHave)) 
     return results
 
@@ -244,15 +249,18 @@ def isGreaterThanPointLowerLimit(NID, cursor):
         return True
     return False
 
-def isMustHaveCourse(CourseID, conn):
+def isMustHaveCourse(NID, CourseID, conn):
     cursor = conn.cursor()
-    results =  f"SELECT MustHave FROM AllCourse WHERE CourseID = {CourseID}"
+    results =  f"SELECT Dept, Grade, MustHave FROM AllCourse WHERE CourseID = {CourseID};"
+    results2 = f"select Dept, Grade from Users where NID = \'{NID}\';"
     #source: python_example.py
     cursor.execute(results)
     temp = cursor.fetchall()
-
-    if temp[0][0] == True:
-        return True
+    cursor.execute(results2)
+    temp2 = cursor.fetchall()
+    for (dept, grade, musthave) in temp:
+        if (dept == temp2[0][0]) and (grade == temp2[0][1]) and (musthave == 1):
+            return True
     return False
 
 # tested: ABLE TO USE
