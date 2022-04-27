@@ -60,25 +60,16 @@ def pyWishList(NID, conn):
 
 # tested: ABLE TO USE
 #list all Courses that a user must have
-def mustHaveList(NID):
-    return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\');"
-
-# tested: ABLE TO USE
-#automate the "choose MustHave" process
-def autoChooseMustHaveList(NID, conn):
+def mustHaveList(NID, conn):
     cursor = conn.cursor()
-    cursor.execute(mustHaveList(NID))
-    for (CourseID,) in cursor.fetchall():
-        addAllCoursePeople = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
-        addChosen = f"insert into Chosen values(\'{NID}\', {CourseID});"
-        #print(addAllCoursePeople)
-        #print(addChosen)
-        cursor.execute(addAllCoursePeople)
-        conn.commit()
-        cursor.execute(addChosen)
-        conn.commit()
+    cursor.execute(f"select Grade from Users where NID = \'{NID}\';")
+    grade = 0
+    for (a,) in cursor.fetchall():
+        grade = a
+    return f"select CourseID from AllCourse where MustHave = true and Dept in (select Dept from Users where NID = \'{NID}\') and Grade = {grade};"
 
-    '''
+
+'''
 def isMustHaveCourse(Dept,CourseID, conn):
     cursor = conn.cursor()
     results =  f"SELECT MustHave, Dept FROM AllCourse WHERE CourseID = {CourseID};"
@@ -89,9 +80,8 @@ def isMustHaveCourse(Dept,CourseID, conn):
     if (tempA[0] == True) and (tempA[1] == Dept) :
         return True
     return False
-    '''
 
-
+'''
 #tested: ABLE TO USE
 def timeCollision(NID, CourseID, conn):
     cursor = conn.cursor()
@@ -167,7 +157,17 @@ def addInWishList(NID, CourseID, conn):
     cursor = conn.cursor()
     if (isCourse(CourseID, conn) == False):
         return False
-    if CourseID in pyChosenList(NID, conn) or CourseID in pyWishList(NID, conn):
+    #cursor.execute(f"select CourseID from AllCourse where CourseID in (select CourseID from Chosen where NID = \'{NID}\');")
+    #for (cID,) in cursor.fetchall():
+    #    if CourseID == cID:
+    #        return False
+    if CourseID in pyChosenList(NID, conn):
+        return False
+    #cursor.execute(f"select CourseID from AllCourse where CourseID in (select CourseID from WishList where NID = \'{NID}\');")
+    #for (cID,) in cursor.fetchall():
+    #    if CourseID == cID:
+    #        return False
+    if CourseID in pyWishList(NID, conn):
         return False
     results = f"insert into WishList values(\'{NID}\', {CourseID});"
     cursor.execute(results)
@@ -180,6 +180,26 @@ def isExceedLimitOfStudent(CourseID, cursor):
     tempA = cursor.fetchall()
     #return tempA
     return tempA[0][0]>=tempA[0][1]#true or false
+
+
+# tested: ABLE TO USE
+#automate the "choose MustHave" process
+def autoChooseMustHaveList(NID, conn):
+    cursor = conn.cursor()
+    cursor.execute(mustHaveList(NID,conn))
+    for (CourseID,) in cursor.fetchall():
+        if (isExceedLimitOfStudent(CourseID,cursor) == True):
+            cursor.execute(f"insert into WishList values(\'{NID}\', {CourseID});")
+            conn.commit()
+            continue
+        addAllCoursePeople = f"update AllCourse set HowManyPeople = HowManyPeople + 1 where CourseID = {CourseID};"
+        addChosen = f"insert into Chosen values(\'{NID}\', {CourseID});"
+        #print(addAllCoursePeople)
+        #print(addChosen)
+        cursor.execute(addAllCoursePeople)
+        conn.commit()
+        cursor.execute(addChosen)
+        conn.commit()
 
 #lists all CourseName, CourseID, Point that don't exceed limit of Point
 #results is tuple list
@@ -237,6 +257,8 @@ def currentPoint(NID, conn):
     CurrentPoints = 0
     for (a,) in cursor.fetchall():
         CurrentPoints = a
+        if CurrentPoints == None:
+            CurrentPoints = 0
     return CurrentPoints
 
 #return [星期幾(string), 第幾節課(int)]
@@ -274,6 +296,8 @@ def wishListPoint(NID, conn):
     CurrentPoints = 0
     for (a,) in cursor.fetchall():
         CurrentPoints = a
+        if CurrentPoints == None:
+            CurrentPoints = 0
     return CurrentPoints
 
 # tested: ABLE TO USE

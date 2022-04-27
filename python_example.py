@@ -12,6 +12,13 @@ conn = MySQLdb.connect(host="127.0.0.1",
                            db="testdb")
 cursor = conn.cursor()
 
+def isInt(a):
+    try:
+        int(a)
+    except:
+        return False
+    return True
+
 app = Flask(__name__)
 '''
     form = """
@@ -110,7 +117,7 @@ def printOwnCourse():
                         <button type="submit" name="set" value="0">去選課!</button>
                     </form>"""
                 
-    results += f"<h2>已選課表</h2>"
+    results += f"<h2>已選課表 當前學分: {DB.currentPoint(StudentID, conn)}</h2>"
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
@@ -126,7 +133,7 @@ def printOwnCourse():
                             <input type="hidden"  name="courseID" value={CourseID}>
                             <input type="hidden"  name="user" value={username}>
                             <input type="hidden"  name="passwd" value={passwd}>
-                            <button type="submit" name="set" value="2" >取消</button>
+                            <button type="submit" name="set" value="2" >退選</button>
                             </form>
                         </td>
                     """
@@ -181,12 +188,13 @@ def printAllCourse():
     results += "</tr>"
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
         results += "<tr>"
-        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav], DB.courseTimeString(CourseID,conn))
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav], DB.courseTimeString(CourseID,conn))
         results += "</tr>"
     results += "</table>"
     results += "<h1>Welcome</h1>"
     return results
 
+#login fill in form
 @app.route('/index2', methods=['POST'])
 def index2():
     form = """
@@ -209,6 +217,8 @@ def AddUsers():
     UserName = request.form.get("name")
     Dept = request.form.get("dept")
     Grade = request.form.get("grade")
+    if (isInt(Grade) == False):
+        return "年級必須為數字" + index2()
     DB.addUser(NID, UserName, UserPassword, Dept, Grade, conn)
     DB.autoChooseMustHaveList(NID,conn)
     results = "<h1>新增成功，已將必選課程列入課表</h1>"
@@ -222,11 +232,19 @@ def AddCourse():
     Set = request.form.get("set")
     if (Set=="1"):
         CourseID = request.form.get("courseID")
-        DB.addInWishList(StudentID,CourseID,conn)
+        if (isInt(CourseID) == False):
+            results += "請輸入課程ID"
+        elif (DB.addInWishList(StudentID,int(CourseID),conn) == False):
+            results += "無此課程或該課程已選"
+        else:
+            results += "成功加入願望清單"
     if (Set=="2"):#deleteWishList
         CourseID = request.form.get("courseID")
         #results +=f"""{CourseID}"""
-        results += DB.deleteFromWishList(StudentID,CourseID,conn)
+        if (DB.deleteFromWishList(StudentID,CourseID,conn) == True):
+            results += "退出願望清單成功"
+        else:
+            results += "退出失敗"
     if (Set=="3"):
         #results += Set
         #results += DB.chooseCourse(StudentID,conn)
@@ -258,7 +276,7 @@ def AddCourse():
                         <button type="submit" name="set" value="1">加入願望清單</button>
                     </form>
                 """
-    results += f"<h2>願望清單</h2>"
+    results += f"<h2>願望清單 | 願望清單學分數: {DB.wishListPoint(StudentID, conn)}</h2>"
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
@@ -269,7 +287,8 @@ def AddCourse():
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
         str(CourseID)
         results += "<tr>"
-        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav],DB.courseTimeString(CourseID,conn))
+
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav],DB.courseTimeString(CourseID,conn))
         results += f"""<td>
                             <form method="post" action="" >
                             <input type="hidden"  name="courseID" value={CourseID}>
@@ -287,6 +306,8 @@ def AddCourse():
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
+
+    results += "<h2>可選課表</h2>"
     results += "<tr>"
     results += "<th>課程ID</th> <th>課程名稱</th> <th>學分</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th> <th>時間地點</th>"
     results += "</tr>"
@@ -294,7 +315,7 @@ def AddCourse():
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in choosableList:
         str(CourseID)
         results += "<tr>"
-        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(CourseID,CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav],DB.courseTimeString(CourseID,conn))
+        results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav],DB.courseTimeString(CourseID,conn))
         results += "</tr>"
     results += "</table>"
     return results
