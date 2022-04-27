@@ -117,7 +117,7 @@ def printOwnCourse():
                         <button type="submit" name="set" value="0">去選課!</button>
                     </form>"""
                 
-    results += f"<h2>已選課表</h2>"
+    results += f"<h2>已選課表 當前學分: {DB.currentPoint(StudentID, conn)}</h2>"
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
@@ -133,7 +133,7 @@ def printOwnCourse():
                             <input type="hidden"  name="courseID" value={CourseID}>
                             <input type="hidden"  name="user" value={username}>
                             <input type="hidden"  name="passwd" value={passwd}>
-                            <button type="submit" name="set" value="2" >取消</button>
+                            <button type="submit" name="set" value="2" >退選</button>
                             </form>
                         </td>
                     """
@@ -276,7 +276,7 @@ def AddCourse():
                         <button type="submit" name="set" value="1">加入願望清單</button>
                     </form>
                 """
-    results += f"<h2>願望清單</h2>"
+    results += f"<h2>願望清單 | 願望清單學分數: {DB.wishListPoint(StudentID, conn)}</h2>"
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
@@ -304,6 +304,7 @@ def AddCourse():
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
+    results += "<h2>可選課表</h2>"
     results += "<tr>"
     results += "<th>課程ID</th> <th>課程名稱</th> <th>學分</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th> <th>時間地點</th>"
     results += "</tr>"
