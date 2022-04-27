@@ -80,9 +80,8 @@ def isMustHaveCourse(Dept,CourseID, conn):
     if (tempA[0] == True) and (tempA[1] == Dept) :
         return True
     return False
+
 '''
-
-
 #tested: ABLE TO USE
 def timeCollision(NID, CourseID, conn):
     cursor = conn.cursor()

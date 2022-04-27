@@ -285,7 +285,9 @@ def AddCourse():
     results += "</tr>"
     
     for (CourseID,CourseName,Dept,HowManyPeople, PeopleLimit,Points,Teacher,Grade,MustHav) in cursor.fetchall():
+        str(CourseID)
         results += "<tr>"
+
         results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav],DB.courseTimeString(CourseID,conn))
         results += f"""<td>
                             <form method="post" action="" >
@@ -304,6 +306,7 @@ def AddCourse():
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
+
     results += "<h2>可選課表</h2>"
     results += "<tr>"
     results += "<th>課程ID</th> <th>課程名稱</th> <th>學分</th> <th>人數</th> <th>學分</th> <th>教授</th> <th>年級</th> <th>必修</th> <th>時間地點</th>"
