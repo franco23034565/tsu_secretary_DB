@@ -139,7 +139,7 @@ def printOwnCourse():
         results += "</tr>"            
     results += "</table>"
     results += f"""<form method="post" action="/personalTime" >
-                        <button type="submit" name="set" value="0">查看個人課表</button>
+                        <button type="submit">查看個人課表</button>
                     </form>
                 """
     return results
