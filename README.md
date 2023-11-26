@@ -11,6 +11,8 @@
 格式:
 `courseID courseName Dept HowManyPeople MaxPeople Point instructor grade MustHave CourseTime Place CourseTime Place......`
 
+---
+
 `updateDB.py` 為 預計可能用到的sql指令
 
 - 新增用戶(密碼使用SHA256加密)
@@ -20,7 +22,7 @@
 `autoChooseMustHaveList(NID, conn)`
 
 * 衝堂檢查
-`timeCollision(NID,conn)`
+`timeCollision(NID, CourseID,conn)`
 True or False
 
 * 加入願望清單（課程不存在 已選 已於願望清單皆return false）
@@ -49,5 +51,28 @@ True or False
 * 從願望清單移除
 `deleteFromWishList(NID, CourseID, conn)`
 
-- 退選（不包含檢測"CourseID是否在該用戶的chosen中"）
-`deleteCourse(NID, CourseID)`
+* 退選
+`deleteCourse(NID, CourseID, conn)`
+
+- ......etc
+---
+我們使用了老師的 `python_example.py` ，並修改其功能，讓其有以下功能
+- 基本的登入功能
+
+* 退選
+
+* 新增使用者
+
+* 顯示所有課程
+
+* 顯示可選課程
+
+* 顯示已選課程
+
+* 將課程加入願望清單
+
+* 將願望清單與已選課表合併
+
+* 顯示當前學分與願望清單學分數
+
+- 顯示個人課表

@@ -116,7 +116,7 @@ def deleteCourse(NID, CourseID, conn):
     cursor = conn.cursor()
     if CourseIDIsChosenByNID(NID, CourseID, conn) == False:
         results += f"""  <script>
-                            alert("退選失敗, 你未曾加選過 {CourseID} !!")
+                            alert("你已經退選過 {CourseID} 了!!")
                         </script>
                     """
         return results
@@ -409,14 +409,20 @@ def personalCourseTime(NID, conn):
     return idlist
 
 
+def showLimit():
+    return """<script>
+                function(){
+                    alert("提醒: 學分最高不能超過30，最低不能低於9")
+                }
+            </script>"""
+
 def CourseIDIsChosenByNID(NID, CourseID, conn):
     cursor = conn.cursor()
-    cursor.execute(f"SELECT * FROM Chosen WHERE NID = {NID} AND CourseID = {CourseID}")
-    temp = cursor.fetchone()
-    if temp[0] == None:
+    cursor.execute(f"SELECT count(*) FROM Chosen WHERE NID = \'{NID}\' AND CourseID = {CourseID};")
+    temp = cursor.fetchall()
+    if temp[0][0] == 0:
         return False
     return True
-
 
 def showName(NID, conn):
     cursor = conn.cursor()

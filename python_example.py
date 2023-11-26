@@ -48,9 +48,7 @@ app = Flask(__name__)
 
 
 @app.route('/')
-
 def index():
-
     form = f"""
     <form method="post" action="/index2">
         <button type="submit" value="*">新增使用者</button>
@@ -118,6 +116,7 @@ def printOwnCourse():
                     </form>"""
                 
     results += f"<h2>已選課表 當前學分: {DB.currentPoint(StudentID, conn)}</h2>"
+    results += """<p><font color="#ff0000">提示：若該課程是你的必修課程，退選按鈕將是紅色</font></p>"""
     results += "<table>"
     # 取得並列出所有查詢結果
     #CourseID,CourseName,Dept,PeopleLimit,Points,Teacher,Grade,MustHave
@@ -133,14 +132,19 @@ def printOwnCourse():
                             <input type="hidden"  name="courseID" value={CourseID}>
                             <input type="hidden"  name="user" value={username}>
                             <input type="hidden"  name="passwd" value={passwd}>
-                            <button type="submit" name="set" value="2" >退選</button>
+                            <button type="submit" name="set" value="2">"""
+        if (DB.isMustHaveCourse(StudentID, CourseID, conn) == True):
+            results += """<font color="#ff0000">退選</font>"""
+        else:
+            results += """退選"""
+        results +=  """</button>
                             </form>
                         </td>
                     """
         results += "</tr>"            
     results += "</table>"
     results += f"""<form method="post" action="/personalTime" >
-                        <button type="submit" name="set" value="0">查看個人課表</button>
+                        <button type="submit">查看個人課表</button>
                     </form>
                 """
     return results
@@ -191,7 +195,7 @@ def printAllCourse():
         results += "<td>{}</td> <td>{}</td> <td>{}</td> <td>{}/{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td> <td>{}</td>".format(str(CourseID).zfill(4),CourseName,Dept,HowManyPeople,PeopleLimit,Points,Teacher,Grade,truth[MustHav], DB.courseTimeString(CourseID,conn))
         results += "</tr>"
     results += "</table>"
-    results += "<h1>Welcome</h1>"
+    #results += "<h1>Welcome</h1>"
     return results
 
 #login fill in form
@@ -218,8 +222,9 @@ def AddUsers():
     Dept = request.form.get("dept")
     Grade = request.form.get("grade")
     if (isInt(Grade) == False):
-        return "年級必須為數字" + index2()
-    DB.addUser(NID, UserName, UserPassword, Dept, Grade, conn)
+        return """<script>alert("年級必須為數字")</script>""" + index2()
+    if (DB.addUser(NID, UserName, UserPassword, Dept, Grade, conn) == False):
+        return """<script>alert("用戶已存在")</script>""" + index2()
     DB.autoChooseMustHaveList(NID,conn)
     results = "<h1>新增成功，已將必選課程列入課表</h1>"
     results += """<p><a href="/">Back to Query Interface</a></p>"""
@@ -233,7 +238,7 @@ def AddCourse():
     if (Set=="1"):
         CourseID = request.form.get("courseID")
         if (isInt(CourseID) == False):
-            results += """<script>alert("請輸入課程ID")</script>"""
+            results += """<script>alert("請輸入課程ID(數字)")</script>"""
         elif (DB.addInWishList(StudentID,int(CourseID),conn) == False):
             results += """<script>alert("無此課程或該課程已選")</script>"""
         else:
@@ -272,10 +277,11 @@ def AddCourse():
         <p><a href="/">Back to Query Interface</a></p>"""
     results +=  f"<h1>Welcome, 你的學號:{StudentID}, 你的名字:{DB.showName(StudentID,conn)} </h1>"
     results +=   f"""<form method="post" action="" >
-                        輸入課程ID進入願望清單:<p><input type="text" name="courseID">
+                        輸入要加入願望清單的課程ID:<p><input type="text" name="courseID">
                         <button type="submit" name="set" value="1">加入願望清單</button>
                     </form>
                 """
+    results += """<p><font color="#ff0000">提示：修習學分數不可高於30分或低於9分</font></p>"""
     results += f"<h2>願望清單 | 願望清單學分數: {DB.wishListPoint(StudentID, conn)}</h2>"
     results += "<table>"
     # 取得並列出所有查詢結果
@@ -292,7 +298,7 @@ def AddCourse():
         results += f"""<td>
                             <form method="post" action="" >
                             <input type="hidden"  name="courseID" value={CourseID}>
-                            <button type="submit" name="set" value="2" >取消</button>
+                            <button type="submit" name="set" value="2" >取消關注</button>
                             </form>
                         </td>
                     """
@@ -320,7 +326,7 @@ def AddCourse():
     results += "</table>"
     return results
 
-@app.route('/personalTime', methods=['POST','GET'])
+@app.route('/personalTime', methods=['POST'])
 def pCourseTime():
     personalList = DB.personalCourseTime(StudentID, conn)
     results = """
