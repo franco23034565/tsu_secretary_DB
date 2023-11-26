@@ -1,4 +1,4 @@
-# 徐書記 期中專題
+# 蘇哲嘉組 期中專題
 
 `dbschema.sql` 為 DB Schema 的初始化
 
