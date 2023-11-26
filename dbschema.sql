@@ -5,7 +5,7 @@ UserPassword varchar(255),
 Dept varchar(20),
 Grade int
 );
-
+ 
 create table Chosen(
 NID varchar(10),
 CourseID int,

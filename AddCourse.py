@@ -1,4 +1,4 @@
-# Written By Franco 
+# Written By Franco  
 import MySQLdb
 
 f = open("Course.txt", 'r', encoding="utf-8")
